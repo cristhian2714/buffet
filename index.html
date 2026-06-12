@@ -973,6 +973,60 @@
       display: block;
     }
 
+    /* ══════════════════════════════════════════════
+   MODAL CONFIRM
+══════════════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(26, 22, 16, 0.6);
+      backdrop-filter: blur(3px);
+      z-index: 99999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.active {
+      display: flex;
+      animation: fadeIn .2s ease;
+    }
+    .modal-box {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: var(--shadow-md);
+      text-align: center;
+      animation: scaleIn .2s ease;
+    }
+    .modal-icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+    }
+    .modal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 10px;
+    }
+    .modal-desc {
+      font-size: 14px;
+      color: var(--ink-50);
+      margin-bottom: 24px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    @keyframes scaleIn {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
     /* RESPONSIVE */
     @media (max-width: 1024px) {
       .g4 { grid-template-columns: 1fr 1fr; }
@@ -1007,6 +1061,9 @@
       .content {
         padding: 16px;
       }
+      .card {
+        padding: 16px;
+      }
       .g2, .g3, .g4, .form-row.c2, .form-row.c3, .form-row.c4 {
         grid-template-columns: 1fr;
       }
@@ -1021,6 +1078,14 @@
       .calc-big > div {
         text-align: left !important;
       }
+      .hide-mob { display: none; }
+      .tbl-wrap {
+        border-left: none;
+        border-right: none;
+        border-radius: 0;
+        margin: 0 -16px;
+      }
+      td, th { padding: 12px; }
     }
   </style>
 </head>
@@ -1073,6 +1138,19 @@
   <!-- ── OVERLAY ─────────────────────────────────── -->
   <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleMenu()"></div>
 
+  <!-- ── MODAL ─────────────────────────────────── -->
+  <div class="modal-overlay" id="ui-modal">
+    <div class="modal-box">
+      <div class="modal-icon">⚠️</div>
+      <div class="modal-title">Confirmação</div>
+      <div class="modal-desc" id="ui-modal-msg">Você tem certeza disso?</div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="ui-modal-cancel">Cancelar</button>
+        <button class="btn danger" id="ui-modal-confirm">Sim, remover</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ── MAIN ────────────────────────────────────── -->
   <main class="main">
     <header class="topbar">
@@ -1084,8 +1162,8 @@
         </div>
       </div>
       <div style="display:flex;gap:10px;align-items:center">
-        <button class="btn sm" onclick="exportarDados()" title="Exportar dados">💾 Exportar dados</button>
-        <button class="btn sm primary" onclick="importarDados()" title="Importar dados">📂 Importar</button>
+        <button class="btn sm" onclick="exportarDados()" title="Exportar dados">💾 <span class="hide-mob">Exportar</span></button>
+        <button class="btn sm primary" onclick="importarDados()" title="Importar dados">📂 <span class="hide-mob">Importar</span></button>
       </div>
     </header>
 
@@ -1674,6 +1752,27 @@
       setTimeout(function () { el.remove(); }, 3200);
     }
 
+    function uiConfirm(msg, onConfirm) {
+      var overlay = document.getElementById('ui-modal');
+      document.getElementById('ui-modal-msg').textContent = msg;
+      overlay.classList.add('active');
+      
+      var btnCancel = document.getElementById('ui-modal-cancel');
+      var btnConfirm = document.getElementById('ui-modal-confirm');
+      
+      var cleanup = function() {
+        overlay.classList.remove('active');
+        btnCancel.removeEventListener('click', onCancelClick);
+        btnConfirm.removeEventListener('click', onConfirmClick);
+      };
+      
+      var onCancelClick = function() { cleanup(); };
+      var onConfirmClick = function() { cleanup(); onConfirm(); };
+      
+      btnCancel.addEventListener('click', onCancelClick);
+      btnConfirm.addEventListener('click', onConfirmClick);
+    }
+
     // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAF_1FWWJYvNWOvjeizvr0Xa0Yt2NJ9iUA",
@@ -1767,10 +1866,11 @@
       ['ing-nome', 'ing-custo', 'ing-estoque', 'ing-minimo', 'ing-forn'].forEach(function (id) { document.getElementById(id).value = ''; });
     }
     function removerIngrediente(id) {
-      if (!confirm('Remover este ingrediente?')) return;
-      db.ingredientes = db.ingredientes.filter(function (i) { return i.id !== id; });
-      salvarLS(); renderIngredientes(); renderSelects();
-      toast('Ingrediente removido.');
+      uiConfirm('Tem certeza que deseja remover este ingrediente?', function() {
+        db.ingredientes = db.ingredientes.filter(function (i) { return i.id !== id; });
+        salvarLS(); renderIngredientes(); renderSelects();
+        toast('Ingrediente removido.');
+      });
     }
     function renderIngredientes() {
       var busca = (document.getElementById('ing-busca').value || '').toLowerCase();
@@ -1876,10 +1976,11 @@
       document.getElementById('cd-margem-show').textContent = '—';
     }
     function removerCardapio(id) {
-      if (!confirm('Remover este cardápio?')) return;
-      db.cardapios = db.cardapios.filter(function (c) { return c.id !== id; });
-      salvarLS(); renderCardapios(); renderSelects();
-      toast('Cardápio removido.');
+      uiConfirm('Tem certeza que deseja remover este cardápio?', function() {
+        db.cardapios = db.cardapios.filter(function (c) { return c.id !== id; });
+        salvarLS(); renderCardapios(); renderSelects();
+        toast('Cardápio removido.');
+      });
     }
     function renderCardapios() {
       document.getElementById('cd-count').textContent = db.cardapios.length + ' cadastrados';
@@ -1962,10 +2063,11 @@
       document.getElementById('ev-preview').style.display = 'none';
     }
     function removerEvento(id) {
-      if (!confirm('Remover este evento?')) return;
-      db.eventos = db.eventos.filter(function (e) { return e.id !== id; });
-      salvarLS(); renderEventos();
-      toast('Evento removido.');
+      uiConfirm('Tem certeza que deseja remover este evento?', function() {
+        db.eventos = db.eventos.filter(function (e) { return e.id !== id; });
+        salvarLS(); renderEventos();
+        toast('Evento removido.');
+      });
     }
     function renderEventos() {
       var busca = (document.getElementById('ev-busca').value || '').toLowerCase();
