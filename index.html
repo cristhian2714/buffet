@@ -1,0 +1,2249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BuffetPro — Sistema de Gestão</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    /* ══════════════════════════════════════════════
+   RESET & TOKENS
+══════════════════════════════════════════════ */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --gold: #C9941A;
+      --gold-dark: #8B6310;
+      --gold-light: #F5E6B8;
+      --gold-pale: #FDF8EC;
+      --ink: #1A1610;
+      --ink-80: #3D3428;
+      --ink-50: #8C7D65;
+      --ink-20: #D8CFC0;
+      --ink-10: #F0EBE1;
+      --cream: #FAFAF7;
+      --white: #FFFFFF;
+      --green: #2D6A4F;
+      --green-bg: #D8F3DC;
+      --red: #B5152B;
+      --red-bg: #FFE4E8;
+      --blue: #1B4F8A;
+      --blue-bg: #DDE9F7;
+      --sidebar-w: 240px;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --shadow: 0 2px 8px rgba(26, 22, 16, .08);
+      --shadow-md: 0 4px 20px rgba(26, 22, 16, .12);
+      font-size: 15px;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ══════════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════════ */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--ink);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
+      overflow-y: auto;
+    }
+
+    .sidebar-brand {
+      padding: 28px 24px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, .08);
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--gold);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      font-size: 22px;
+    }
+
+    .brand-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--white);
+      letter-spacing: .01em;
+    }
+
+    .brand-tag {
+      font-size: 11px;
+      color: rgba(255, 255, 255, .4);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .sidebar-nav {
+      padding: 16px 12px;
+      flex: 1;
+    }
+
+    .nav-section {
+      margin-bottom: 24px;
+    }
+
+    .nav-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, .25);
+      padding: 0 12px;
+      margin-bottom: 6px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: rgba(255, 255, 255, .55);
+      font-size: 13.5px;
+      font-weight: 400;
+      transition: all .18s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .nav-item:hover {
+      color: var(--white);
+      background: rgba(255, 255, 255, .07);
+    }
+
+    .nav-item.active {
+      color: var(--ink);
+      background: var(--gold);
+      font-weight: 500;
+    }
+
+    .nav-item.active .nav-icon {
+      opacity: 1;
+    }
+
+    .nav-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+      opacity: .7;
+    }
+
+    .sidebar-footer {
+      padding: 16px 24px;
+      border-top: 1px solid rgba(255, 255, 255, .08);
+      font-size: 11px;
+      color: rgba(255, 255, 255, .2);
+    }
+
+    /* ══════════════════════════════════════════════
+   MAIN
+══════════════════════════════════════════════ */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      background: var(--white);
+      border-bottom: 1px solid var(--ink-10);
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .topbar-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--ink);
+    }
+
+    .topbar-date {
+      font-size: 12px;
+      color: var(--ink-50);
+    }
+
+    .content {
+      padding: 32px;
+      flex: 1;
+    }
+
+    /* ══════════════════════════════════════════════
+   PAGES
+══════════════════════════════════════════════ */
+    .page {
+      display: none;
+      animation: fadeIn .2s ease;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    /* ══════════════════════════════════════════════
+   CARDS & GRID
+══════════════════════════════════════════════ */
+    .card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--ink-10);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 17px;
+      font-weight: 500;
+      margin-bottom: 20px;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-title-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--gold-pale);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .g2 {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .g3 {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .g4 {
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+    }
+
+    /* ══════════════════════════════════════════════
+   METRICS
+══════════════════════════════════════════════ */
+    .metric-card {
+      background: var(--white);
+      border: 1px solid var(--ink-10);
+      border-radius: var(--radius-lg);
+      padding: 20px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--gold);
+      opacity: .5;
+    }
+
+    .metric-card.accent::after {
+      opacity: 1;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--ink-50);
+      font-weight: 500;
+    }
+
+    .metric-val {
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--ink);
+      font-family: 'Playfair Display', serif;
+    }
+
+    .metric-val.green {
+      color: var(--green);
+    }
+
+    .metric-val.red {
+      color: var(--red);
+    }
+
+    .metric-val.gold {
+      color: var(--gold-dark);
+    }
+
+    .metric-sub {
+      font-size: 12px;
+      color: var(--ink-50);
+    }
+
+    /* ══════════════════════════════════════════════
+   FORMS
+══════════════════════════════════════════════ */
+    .form-section {
+      margin-bottom: 24px;
+    }
+
+    .form-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--ink-50);
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--ink-10);
+    }
+
+    .form-row {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .form-row.c2 {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .form-row.c3 {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .form-row.c4 {
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+    }
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ink-80);
+      margin-bottom: 6px;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      padding: 10px 13px;
+      border: 1.5px solid var(--ink-20);
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--ink);
+      background: var(--white);
+      transition: border-color .15s, box-shadow .15s;
+      outline: none;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201, 148, 26, .12);
+    }
+
+    .field textarea {
+      resize: vertical;
+      min-height: 72px;
+    }
+
+    .field input[type=number] {
+      -moz-appearance: textfield;
+    }
+
+    .field input[type=number]::-webkit-outer-spin-button,
+    .field input[type=number]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+    }
+
+    /* ══════════════════════════════════════════════
+   BUTTONS
+══════════════════════════════════════════════ */
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      border: 1.5px solid var(--ink-20);
+      background: var(--white);
+      color: var(--ink-80);
+      font-size: 13.5px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .btn:hover {
+      border-color: var(--ink-50);
+      background: var(--ink-10);
+    }
+
+    .btn.primary {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--white);
+    }
+
+    .btn.primary:hover {
+      background: var(--gold-dark);
+      border-color: var(--gold-dark);
+    }
+
+    .btn.danger {
+      background: var(--red-bg);
+      border-color: #F5A0A8;
+      color: var(--red);
+    }
+
+    .btn.danger:hover {
+      background: #FFCDD1;
+    }
+
+    .btn.ghost {
+      border-color: transparent;
+    }
+
+    .btn.ghost:hover {
+      background: var(--ink-10);
+      border-color: var(--ink-20);
+    }
+
+    .btn.sm {
+      padding: 6px 13px;
+      font-size: 12px;
+    }
+
+    .btn.icon-only {
+      padding: 8px;
+      width: 34px;
+      height: 34px;
+      justify-content: center;
+    }
+
+    /* ══════════════════════════════════════════════
+   TABLE
+══════════════════════════════════════════════ */
+    .tbl-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius);
+      border: 1px solid var(--ink-10);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    thead {
+      background: var(--ink-10);
+    }
+
+    th {
+      text-align: left;
+      padding: 11px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--ink-50);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 13px 16px;
+      border-top: 1px solid var(--ink-10);
+      vertical-align: middle;
+    }
+
+    tr:hover td {
+      background: var(--gold-pale);
+    }
+
+    .tbl-empty {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--ink-50);
+    }
+
+    .tbl-empty-icon {
+      font-size: 32px;
+      display: block;
+      margin-bottom: 8px;
+      opacity: .4;
+    }
+
+    /* ══════════════════════════════════════════════
+   BADGES
+══════════════════════════════════════════════ */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11.5px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .badge.gold {
+      background: var(--gold-light);
+      color: var(--gold-dark);
+    }
+
+    .badge.green {
+      background: var(--green-bg);
+      color: var(--green);
+    }
+
+    .badge.red {
+      background: var(--red-bg);
+      color: var(--red);
+    }
+
+    .badge.blue {
+      background: var(--blue-bg);
+      color: var(--blue);
+    }
+
+    .badge.gray {
+      background: var(--ink-10);
+      color: var(--ink-50);
+    }
+
+    /* ══════════════════════════════════════════════
+   ALERTS
+══════════════════════════════════════════════ */
+    .alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 13px 16px;
+      border-radius: var(--radius);
+      font-size: 13.5px;
+      margin-bottom: 16px;
+    }
+
+    .alert.green {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid #9DD9B0;
+    }
+
+    .alert.red {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid #F5A0A8;
+    }
+
+    .alert.gold {
+      background: var(--gold-pale);
+      color: var(--gold-dark);
+      border: 1px solid var(--gold-light);
+    }
+
+    .alert-icon {
+      font-size: 17px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ══════════════════════════════════════════════
+   TAGS DE INGREDIENTES
+══════════════════════════════════════════════ */
+    .ing-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 10px 0;
+    }
+
+    .ing-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--gold-pale);
+      border: 1px solid var(--gold-light);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 12.5px;
+      color: var(--gold-dark);
+    }
+
+    .ing-tag button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--ink-50);
+      font-size: 13px;
+      line-height: 1;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      transition: color .12s;
+    }
+
+    .ing-tag button:hover {
+      color: var(--red);
+    }
+
+    /* ══════════════════════════════════════════════
+   CARDÁPIO CARDS
+══════════════════════════════════════════════ */
+    .menu-card {
+      background: var(--white);
+      border: 1px solid var(--ink-10);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 14px;
+      transition: box-shadow .18s;
+    }
+
+    .menu-card:hover {
+      box-shadow: var(--shadow);
+    }
+
+    .menu-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .menu-card-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .menu-card-prices {
+      display: flex;
+      gap: 20px;
+      font-size: 13px;
+      color: var(--ink-50);
+      margin-top: 8px;
+    }
+
+    .menu-card-prices strong {
+      color: var(--ink);
+    }
+
+    .menu-card-desc {
+      font-size: 13px;
+      color: var(--ink-50);
+      margin: 8px 0;
+    }
+
+    /* ══════════════════════════════════════════════
+   CALCULADORA RESULTADO
+══════════════════════════════════════════════ */
+    .calc-result {
+      background: var(--ink);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      color: var(--white);
+    }
+
+    .calc-result-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      color: var(--gold);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .calc-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, .08);
+      font-size: 13.5px;
+    }
+
+    .calc-item:last-child {
+      border-bottom: none;
+    }
+
+    .calc-item-label {
+      color: rgba(255, 255, 255, .6);
+    }
+
+    .calc-item-val {
+      font-weight: 500;
+    }
+
+    .calc-item-val.gold {
+      color: var(--gold);
+    }
+
+    .calc-item-val.green {
+      color: #6FCF97;
+    }
+
+    .calc-item-val.red {
+      color: #FF8A95;
+    }
+
+    .calc-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, .15);
+      margin: 12px 0;
+    }
+
+    .calc-big {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding-top: 16px;
+    }
+
+    .calc-big-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: rgba(255, 255, 255, .4);
+      margin-bottom: 4px;
+    }
+
+    .calc-big-val {
+      font-family: 'Playfair Display', serif;
+      font-size: 30px;
+      font-weight: 600;
+    }
+
+    /* ══════════════════════════════════════════════
+   CHART
+══════════════════════════════════════════════ */
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    /* ══════════════════════════════════════════════
+   PROGRESS
+══════════════════════════════════════════════ */
+    .progress {
+      height: 5px;
+      background: var(--ink-10);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--gold);
+      border-radius: 3px;
+      transition: width .4s ease;
+    }
+
+    .progress-fill.green {
+      background: var(--green);
+    }
+
+    .progress-fill.red {
+      background: var(--red);
+    }
+
+    /* ══════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════ */
+    .toast-container {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      background: var(--ink);
+      color: var(--white);
+      padding: 13px 20px;
+      border-radius: var(--radius);
+      font-size: 13.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: var(--shadow-md);
+      animation: slideIn .25s ease;
+      min-width: 260px;
+    }
+
+    .toast.success {
+      border-left: 3px solid #6FCF97;
+    }
+
+    .toast.error {
+      border-left: 3px solid #FF8A95;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    /* ══════════════════════════════════════════════
+   DIVIDER
+══════════════════════════════════════════════ */
+    hr.divider {
+      border: none;
+      border-top: 1px solid var(--ink-10);
+      margin: 20px 0;
+    }
+
+    /* ══════════════════════════════════════════════
+   SEARCH
+══════════════════════════════════════════════ */
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-wrap input {
+      padding-left: 38px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--ink-50);
+      font-size: 16px;
+      pointer-events: none;
+    }
+
+    /* ══════════════════════════════════════════════
+   SECTION HEADER
+══════════════════════════════════════════════ */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .section-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--ink);
+    }
+
+    .section-sub {
+      font-size: 13px;
+      color: var(--ink-50);
+      margin-top: 2px;
+    }
+
+    /* ══════════════════════════════════════════════
+   DASHBOARD SPECIFIC
+══════════════════════════════════════════════ */
+    .event-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--ink-10);
+    }
+
+    .event-row:last-child {
+      border-bottom: none;
+    }
+
+    .event-row-name {
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .event-row-meta {
+      font-size: 12px;
+      color: var(--ink-50);
+      margin-top: 2px;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .g4 {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 200px;
+      }
+
+      .main {
+        margin-left: 200px;
+      }
+
+      .g2,
+      .g3,
+      .g4 {
+        grid-template-columns: 1fr;
+      }
+
+      .form-row.c2,
+      .form-row.c3,
+      .form-row.c4 {
+        grid-template-columns: 1fr;
+      }
+
+      .content {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ── SIDEBAR ─────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">🍽️</div>
+      <div class="brand-name">BuffetPro</div>
+      <div class="brand-tag">Sistema de gestão</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-label">Principal</div>
+        <button class="nav-item active" onclick="navTo('painel', this)">
+          <span class="nav-icon">📊</span> Painel
+        </button>
+        <button class="nav-item" onclick="navTo('eventos', this)">
+          <span class="nav-icon">📅</span> Eventos
+        </button>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Cardápio</div>
+        <button class="nav-item" onclick="navTo('cardapio', this)">
+          <span class="nav-icon">📋</span> Cardápios
+        </button>
+        <button class="nav-item" onclick="navTo('ingredientes', this)">
+          <span class="nav-icon">🧺</span> Ingredientes
+        </button>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Financeiro</div>
+        <button class="nav-item" onclick="navTo('calculadora', this)">
+          <span class="nav-icon">🧮</span> Calculadora
+        </button>
+        <button class="nav-item" onclick="navTo('relatorio', this)">
+          <span class="nav-icon">📈</span> Relatórios
+        </button>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      BuffetPro v1.0 · Dados salvos localmente
+    </div>
+  </aside>
+
+  <!-- ── MAIN ────────────────────────────────────── -->
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <div class="topbar-title" id="topbar-title">Painel</div>
+        <div class="topbar-date" id="topbar-date"></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="btn sm" onclick="exportarDados()" title="Exportar dados">💾 Exportar dados</button>
+        <button class="btn sm primary" onclick="importarDados()" title="Importar dados">📂 Importar</button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- ═══════ PAINEL ═══════ -->
+      <div id="page-painel" class="page active">
+        <div class="section-header">
+          <div>
+            <h2>Painel geral</h2>
+            <div class="section-sub">Visão consolidada do seu negócio</div>
+          </div>
+        </div>
+
+        <div class="grid g4" style="margin-bottom:20px" id="dash-metrics"></div>
+
+        <div class="grid g2">
+          <div class="card">
+            <div class="card-title">
+              <div class="card-title-icon">📅</div> Próximos eventos
+            </div>
+            <div id="dash-proximos"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <div class="card-title-icon">📊</div> Receita vs. custo
+            </div>
+            <div class="chart-wrap" style="height:220px"><canvas id="chartDash" role="img"
+                aria-label="Receita e custo dos últimos eventos"></canvas></div>
+          </div>
+        </div>
+
+        <div class="grid g2">
+          <div class="card">
+            <div class="card-title">
+              <div class="card-title-icon">📈</div> Evolução mensal
+            </div>
+            <div class="chart-wrap" style="height:200px"><canvas id="chartMensal" role="img"
+                aria-label="Receita e lucro por mês"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <div class="card-title-icon">🧺</div> Estoque em alerta
+            </div>
+            <div id="dash-estoque"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ EVENTOS ═══════ -->
+      <div id="page-eventos" class="page">
+        <div class="section-header">
+          <div>
+            <h2>Eventos</h2>
+            <div class="section-sub">Cadastre e acompanhe cada evento</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <div class="card-title-icon">➕</div> Novo evento
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">Informações básicas</div>
+            <div class="form-row c3">
+              <div class="field"><label>Nome do evento *</label><input type="text" id="ev-nome"
+                  placeholder="Ex: Casamento Silva & Costa"></div>
+              <div class="field"><label>Tipo</label>
+                <select id="ev-tipo">
+                  <option>Casamento</option>
+                  <option>Aniversário</option>
+                  <option>Formatura</option>
+                  <option>Corporativo</option>
+                  <option>Batizado</option>
+                  <option>Debutante</option>
+                  <option>Confraternização</option>
+                  <option>Outro</option>
+                </select>
+              </div>
+              <div class="field"><label>Status</label>
+                <select id="ev-status">
+                  <option value="agendado">Agendado</option>
+                  <option value="confirmado">Confirmado</option>
+                  <option value="realizado">Realizado</option>
+                  <option value="cancelado">Cancelado</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row c3">
+              <div class="field"><label>Data do evento</label><input type="date" id="ev-data"></div>
+              <div class="field"><label>Horário</label><input type="time" id="ev-hora"></div>
+              <div class="field"><label>Local / salão</label><input type="text" id="ev-local"
+                  placeholder="Nome do espaço"></div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">Convidados & cardápio</div>
+            <div class="form-row c3">
+              <div class="field"><label>Número de convidados *</label><input type="number" id="ev-pessoas" min="1"
+                  placeholder="150"></div>
+              <div class="field"><label>Cardápio</label><select id="ev-cardapio">
+                  <option value="">— selecione —</option>
+                </select></div>
+              <div class="field"><label>Contato do cliente</label><input type="text" id="ev-contato"
+                  placeholder="WhatsApp ou e-mail"></div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">Financeiro</div>
+            <div class="form-row c3">
+              <div class="field"><label>Custo total do evento (R$)</label><input type="number" id="ev-custo" min="0"
+                  step="0.01" placeholder="0,00" oninput="atualizarEv()"></div>
+              <div class="field"><label>Valor cobrado por pessoa (R$)</label><input type="number" id="ev-valor" min="0"
+                  step="0.01" placeholder="0,00" oninput="atualizarEv()"></div>
+              <div class="field"><label>Sinal / adiantamento (R$)</label><input type="number" id="ev-sinal" min="0"
+                  step="0.01" placeholder="0,00"></div>
+            </div>
+            <div id="ev-preview" style="display:none" class="alert gold">
+              <span class="alert-icon">💰</span>
+              <div id="ev-preview-text"></div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">Detalhes adicionais</div>
+            <div class="form-row">
+              <div class="field"><label>Observações / pedidos especiais</label>
+                <textarea id="ev-obs"
+                  placeholder="Restrições alimentares, pedidos de decoração, informações importantes..."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn primary" onclick="salvarEvento()">✅ Salvar evento</button>
+            <button class="btn" onclick="limparEvento()">🗑️ Limpar campos</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="card-title-icon">📋</div> Eventos cadastrados <span id="ev-count" class="badge gold"
+                style="font-family:'Inter'"></span>
+            </div>
+            <div class="search-wrap" style="width:240px">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="ev-busca" placeholder="Buscar evento..." oninput="renderEventos()"
+                style="font-size:13px">
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Evento</th>
+                  <th>Tipo</th>
+                  <th>Data</th>
+                  <th>Convidados</th>
+                  <th>Custo total</th>
+                  <th>Receita</th>
+                  <th>Lucro</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="ev-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ CARDÁPIO ═══════ -->
+      <div id="page-cardapio" class="page">
+        <div class="section-header">
+          <div>
+            <h2>Cardápios</h2>
+            <div class="section-sub">Monte e precifique seus menus</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <div class="card-title-icon">➕</div> Novo cardápio
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">Identificação</div>
+            <div class="form-row c3">
+              <div class="field"><label>Nome do cardápio *</label><input type="text" id="cd-nome"
+                  placeholder="Ex: Menu Premium Casamento"></div>
+              <div class="field"><label>Categoria</label>
+                <select id="cd-cat">
+                  <option>Buffet completo</option>
+                  <option>Coquetel</option>
+                  <option>Almoço</option>
+                  <option>Jantar</option>
+                  <option>Coffee break</option>
+                  <option>Brunch</option>
+                  <option>Festivo infantil</option>
+                  <option>Personalizado</option>
+                </select>
+              </div>
+              <div class="field"><label>Porções por pessoa</label><input type="number" id="cd-porcoes" value="1"
+                  min="0.1" step="0.1"></div>
+            </div>
+            <div class="form-row">
+              <div class="field"><label>Descrição completa do cardápio</label>
+                <textarea id="cd-desc"
+                  placeholder="Descreva detalhadamente: entradas, pratos principais, acompanhamentos, sobremesas, bebidas incluídas..."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">Ingredientes vinculados</div>
+            <div class="form-row c3" style="align-items:flex-end">
+              <div class="field"><label>Ingrediente</label><select id="cd-ing-sel">
+                  <option value="">— selecione —</option>
+                </select></div>
+              <div class="field"><label>Quantidade (por pessoa)</label><input type="number" id="cd-ing-qtd" min="0.001"
+                  step="0.001" placeholder="0,200"></div>
+              <div><button class="btn primary sm" onclick="adicionarIngCard()">➕ Adicionar</button></div>
+            </div>
+            <div class="ing-tags" id="cd-ings-preview"></div>
+            <div id="cd-custo-auto" style="font-size:12px;color:var(--ink-50);margin-top:4px"></div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">Precificação</div>
+            <div class="form-row c3">
+              <div class="field"><label>Custo por pessoa (R$) <span
+                    style="color:var(--gold-dark)">*</span></label><input type="number" id="cd-custo" step="0.01"
+                  placeholder="0,00"></div>
+              <div class="field"><label>Preço de venda por pessoa (R$)</label><input type="number" id="cd-preco"
+                  step="0.01" placeholder="0,00"></div>
+              <div class="field"><label>Margem de lucro</label>
+                <div
+                  style="padding:10px 13px;border:1.5px solid var(--ink-20);border-radius:var(--radius);font-size:14px;background:var(--ink-10);color:var(--ink-50)"
+                  id="cd-margem-show">—</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn primary" onclick="salvarCardapio()">✅ Salvar cardápio</button>
+            <button class="btn" onclick="limparCardapio()">🗑️ Limpar</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="card-title-icon">📋</div> Cardápios cadastrados <span id="cd-count" class="badge gold"></span>
+            </div>
+          </div>
+          <div id="cd-list"></div>
+        </div>
+      </div>
+
+      <!-- ═══════ INGREDIENTES ═══════ -->
+      <div id="page-ingredientes" class="page">
+        <div class="section-header">
+          <div>
+            <h2>Ingredientes</h2>
+            <div class="section-sub">Controle de insumos, custos e estoque</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <div class="card-title-icon">➕</div> Novo ingrediente / insumo
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">Dados do produto</div>
+            <div class="form-row c4">
+              <div class="field"><label>Nome *</label><input type="text" id="ing-nome" placeholder="Ex: Filé mignon">
+              </div>
+              <div class="field"><label>Categoria</label>
+                <select id="ing-cat">
+                  <option>Carnes</option>
+                  <option>Aves</option>
+                  <option>Frutos do mar</option>
+                  <option>Hortifruti</option>
+                  <option>Laticínios</option>
+                  <option>Grãos e massas</option>
+                  <option>Bebidas alcoólicas</option>
+                  <option>Bebidas não-alcoólicas</option>
+                  <option>Descartáveis</option>
+                  <option>Temperos e condimentos</option>
+                  <option>Padaria e confeitaria</option>
+                  <option>Outros</option>
+                </select>
+              </div>
+              <div class="field"><label>Unidade de medida</label>
+                <select id="ing-unid">
+                  <option>kg</option>
+                  <option>g</option>
+                  <option>L</option>
+                  <option>ml</option>
+                  <option>un</option>
+                  <option>cx</option>
+                  <option>pct</option>
+                  <option>dz</option>
+                  <option>maço</option>
+                </select>
+              </div>
+              <div class="field"><label>Custo por unidade (R$) *</label><input type="number" id="ing-custo" step="0.01"
+                  placeholder="0,00"></div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">Estoque</div>
+            <div class="form-row c3">
+              <div class="field"><label>Estoque atual</label><input type="number" id="ing-estoque" step="0.01"
+                  placeholder="0"></div>
+              <div class="field"><label>Estoque mínimo (alerta)</label><input type="number" id="ing-minimo" step="0.01"
+                  placeholder="0"></div>
+              <div class="field"><label>Fornecedor</label><input type="text" id="ing-forn"
+                  placeholder="Nome ou empresa"></div>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn primary" onclick="salvarIngrediente()">✅ Cadastrar ingrediente</button>
+            <button class="btn" onclick="limparIngrediente()">🗑️ Limpar</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="card-title-icon">🧺</div> Ingredientes <span id="ing-count" class="badge gold"></span>
+              <span id="ing-alert-badge"></span>
+            </div>
+            <div class="search-wrap" style="width:240px">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="ing-busca" placeholder="Buscar ingrediente..." oninput="renderIngredientes()"
+                style="font-size:13px">
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Categoria</th>
+                  <th>Custo/un</th>
+                  <th>Estoque atual</th>
+                  <th>Mínimo</th>
+                  <th>Situação</th>
+                  <th>Fornecedor</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="ing-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ CALCULADORA ═══════ -->
+      <div id="page-calculadora" class="page">
+        <div class="section-header">
+          <div>
+            <h2>Calculadora de evento</h2>
+            <div class="section-sub">Descubra o preço ideal e seu lucro real</div>
+          </div>
+        </div>
+
+        <div class="grid g2">
+          <div>
+            <div class="card">
+              <div class="card-title">
+                <div class="card-title-icon">📝</div> Dados do evento
+              </div>
+              <div class="form-row c2">
+                <div class="field"><label>Nome (referência)</label><input type="text" id="calc-nome"
+                    placeholder="Ex: Casamento Oliveira"></div>
+                <div class="field"><label>Cardápio base</label><select id="calc-card" onchange="calcular()">
+                    <option value="">— nenhum —</option>
+                  </select></div>
+              </div>
+              <div class="form-row c2">
+                <div class="field"><label>Número de convidados</label><input type="number" id="calc-pessoas" min="1"
+                    value="100" oninput="calcular()"></div>
+                <div class="field"><label>Custo alimentação/pessoa (R$)</label><input type="number" id="calc-alim"
+                    step="0.01" value="0" oninput="calcular()"></div>
+              </div>
+
+              <hr class="divider">
+              <div
+                style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-50);margin-bottom:14px">
+                Custos fixos do evento (R$)</div>
+
+              <div class="form-row c2">
+                <div class="field"><label>👨‍🍳 Mão de obra / equipe</label><input type="number" id="calc-mao"
+                    step="0.01" value="0" oninput="calcular()"></div>
+                <div class="field"><label>🏛️ Aluguel de espaço</label><input type="number" id="calc-aluguel"
+                    step="0.01" value="0" oninput="calcular()"></div>
+              </div>
+              <div class="form-row c2">
+                <div class="field"><label>🌸 Decoração</label><input type="number" id="calc-deco" step="0.01" value="0"
+                    oninput="calcular()"></div>
+                <div class="field"><label>🚚 Transporte / frete</label><input type="number" id="calc-transp" step="0.01"
+                    value="0" oninput="calcular()"></div>
+              </div>
+              <div class="form-row c2">
+                <div class="field"><label>🎵 Entretenimento</label><input type="number" id="calc-entreten" step="0.01"
+                    value="0" oninput="calcular()"></div>
+                <div class="field"><label>🍽️ Equipamentos / locação</label><input type="number" id="calc-equip"
+                    step="0.01" value="0" oninput="calcular()"></div>
+              </div>
+              <div class="form-row c2">
+                <div class="field"><label>📸 Fotografia / vídeo</label><input type="number" id="calc-foto" step="0.01"
+                    value="0" oninput="calcular()"></div>
+                <div class="field"><label>📦 Outros custos</label><input type="number" id="calc-outros" step="0.01"
+                    value="0" oninput="calcular()"></div>
+              </div>
+
+              <hr class="divider">
+              <div class="form-row c2">
+                <div class="field"><label>Margem de lucro desejada (%)</label><input type="number" id="calc-margem"
+                    min="0" max="100" value="30" oninput="calcular()"></div>
+                <div class="field"><label>Valor cobrado por pessoa (R$)</label><input type="number" id="calc-valpess"
+                    step="0.01" value="0" oninput="calcular()"></div>
+              </div>
+
+              <div class="btn-row">
+                <button class="btn primary" onclick="salvarEventoCalc()">📅 Salvar como evento</button>
+                <button class="btn" onclick="limparCalc()">🗑️ Limpar</button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="calc-result">
+              <div class="calc-result-title">💰 Resultado</div>
+
+              <div class="calc-item">
+                <span class="calc-item-label">Custo de alimentação total</span>
+                <span class="calc-item-val" id="cr-alim">R$ 0,00</span>
+              </div>
+              <div class="calc-item">
+                <span class="calc-item-label">Custos fixos do evento</span>
+                <span class="calc-item-val" id="cr-fixo">R$ 0,00</span>
+              </div>
+              <div class="calc-divider"></div>
+              <div class="calc-item">
+                <span class="calc-item-label">Custo total do evento</span>
+                <span class="calc-item-val gold" id="cr-total">R$ 0,00</span>
+              </div>
+              <div class="calc-item">
+                <span class="calc-item-label">Custo por pessoa</span>
+                <span class="calc-item-val" id="cr-porcab">R$ 0,00</span>
+              </div>
+
+              <div class="calc-divider"></div>
+
+              <div class="calc-item">
+                <span class="calc-item-label">Preço sugerido por pessoa</span>
+                <span class="calc-item-val gold" id="cr-sugerido">R$ 0,00</span>
+              </div>
+              <div class="calc-item">
+                <span class="calc-item-label">Receita total (valor cobrado)</span>
+                <span class="calc-item-val" id="cr-receita">R$ 0,00</span>
+              </div>
+
+              <div class="calc-big">
+                <div>
+                  <div class="calc-big-label">Lucro estimado</div>
+                  <div class="calc-big-val" id="cr-lucro" style="color:#6FCF97">R$ 0,00</div>
+                </div>
+                <div style="text-align:right">
+                  <div class="calc-big-label">Margem real</div>
+                  <div class="calc-big-val" id="cr-margem" style="color:var(--gold)">0%</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:14px" id="cr-alert"></div>
+
+            <div class="card" style="margin-top:0">
+              <div class="card-title">
+                <div class="card-title-icon">📊</div> Breakdown de custos
+              </div>
+              <div class="chart-wrap" style="height:220px"><canvas id="chartCalc" role="img"
+                  aria-label="Distribuição dos custos do evento"></canvas></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ RELATÓRIO ═══════ -->
+      <div id="page-relatorio" class="page">
+        <div class="section-header">
+          <div>
+            <h2>Relatórios</h2>
+            <div class="section-sub">Análise financeira do seu buffet</div>
+          </div>
+        </div>
+
+        <div class="grid g4" id="rel-metrics" style="margin-bottom:20px"></div>
+
+        <div class="grid g2">
+          <div class="card">
+            <div class="card-title">
+              <div class="card-title-icon">📊</div> Receita por tipo de evento
+            </div>
+            <div class="chart-wrap" style="height:240px"><canvas id="chartTipo" role="img"
+                aria-label="Receita por tipo de evento"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <div class="card-title-icon">📈</div> Lucro acumulado (meses)
+            </div>
+            <div class="chart-wrap" style="height:240px"><canvas id="chartLucro" role="img"
+                aria-label="Lucro acumulado por mês"></canvas></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <div class="card-title-icon">🏆</div> Top 5 eventos mais lucrativos
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Evento</th>
+                  <th>Tipo</th>
+                  <th>Data</th>
+                  <th>Convidados</th>
+                  <th>Receita</th>
+                  <th>Custo</th>
+                  <th>Lucro</th>
+                  <th>Margem</th>
+                </tr>
+              </thead>
+              <tbody id="rel-top5"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+
+  <!-- ── TOAST ────────────────────────────────── -->
+  <div class="toast-container" id="toasts"></div>
+
+  <!-- ── INPUT IMPORT (oculto) ─────────────────── -->
+  <input type="file" id="import-file" accept=".json" style="display:none" onchange="lerImport(event)">
+
+  <script>
+    /* ══════════════════════════════════════════════
+       DB & UTILS
+    ══════════════════════════════════════════════ */
+    var db = { eventos: [], cardapios: [], ingredientes: [] };
+    var charts = {};
+
+    function gerarId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 5); }
+
+    function fmt(n) {
+      return 'R$ ' + parseFloat(n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function fmtN(n, dec) {
+      return parseFloat(n || 0).toLocaleString('pt-BR', { minimumFractionDigits: dec || 2, maximumFractionDigits: dec || 2 });
+    }
+    function fmtData(d) {
+      if (!d) return '—';
+      return new Date(d + 'T12:00:00').toLocaleDateString('pt-BR');
+    }
+
+    function toast(msg, type) {
+      type = type || 'success';
+      var el = document.createElement('div');
+      el.className = 'toast ' + type;
+      el.innerHTML = (type === 'success' ? '✅ ' : '❌ ') + msg;
+      document.getElementById('toasts').appendChild(el);
+      setTimeout(function () { el.remove(); }, 3200);
+    }
+
+    function salvarLS() { localStorage.setItem('buffetpro', JSON.stringify(db)); }
+    function carregarLS() {
+      var raw = localStorage.getItem('buffetpro');
+      if (raw) { try { db = JSON.parse(raw); } catch (e) { } }
+    }
+
+    /* ══════════════════════════════════════════════
+       NAVEGAÇÃO
+    ══════════════════════════════════════════════ */
+    var pageTitles = { painel: 'Painel geral', eventos: 'Eventos', cardapio: 'Cardápios', ingredientes: 'Ingredientes', calculadora: 'Calculadora de evento', relatorio: 'Relatórios' };
+
+    function navTo(id, btn) {
+      document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
+      document.querySelectorAll('.nav-item').forEach(function (n) { n.classList.remove('active'); });
+      document.getElementById('page-' + id).classList.add('active');
+      btn.classList.add('active');
+      document.getElementById('topbar-title').textContent = pageTitles[id] || id;
+
+      if (id === 'painel') renderDash();
+      if (id === 'cardapio') renderCardapios();
+      if (id === 'ingredientes') renderIngredientes();
+      if (id === 'eventos') renderEventos();
+      if (id === 'calculadora') { renderSelects(); calcular(); }
+      if (id === 'relatorio') renderRelatorio();
+    }
+
+    /* ══════════════════════════════════════════════
+       INGREDIENTES
+    ══════════════════════════════════════════════ */
+    function salvarIngrediente() {
+      var nome = document.getElementById('ing-nome').value.trim();
+      if (!nome) { toast('Informe o nome do ingrediente', 'error'); return; }
+      db.ingredientes.push({
+        id: gerarId(), nome: nome,
+        categoria: document.getElementById('ing-cat').value,
+        unidade: document.getElementById('ing-unid').value,
+        custo: parseFloat(document.getElementById('ing-custo').value) || 0,
+        estoque: parseFloat(document.getElementById('ing-estoque').value) || 0,
+        minimo: parseFloat(document.getElementById('ing-minimo').value) || 0,
+        fornecedor: document.getElementById('ing-forn').value.trim()
+      });
+      salvarLS(); limparIngrediente(); renderIngredientes(); renderSelects();
+      toast('Ingrediente "' + nome + '" cadastrado!');
+    }
+    function limparIngrediente() {
+      ['ing-nome', 'ing-custo', 'ing-estoque', 'ing-minimo', 'ing-forn'].forEach(function (id) { document.getElementById(id).value = ''; });
+    }
+    function removerIngrediente(id) {
+      if (!confirm('Remover este ingrediente?')) return;
+      db.ingredientes = db.ingredientes.filter(function (i) { return i.id !== id; });
+      salvarLS(); renderIngredientes(); renderSelects();
+      toast('Ingrediente removido.');
+    }
+    function renderIngredientes() {
+      var busca = (document.getElementById('ing-busca').value || '').toLowerCase();
+      var items = db.ingredientes.filter(function (i) {
+        return i.nome.toLowerCase().includes(busca) || i.categoria.toLowerCase().includes(busca);
+      });
+      document.getElementById('ing-count').textContent = db.ingredientes.length + ' cadastrados';
+      var alerts = db.ingredientes.filter(function (i) { return i.minimo > 0 && i.estoque <= i.minimo; });
+      var ab = document.getElementById('ing-alert-badge');
+      ab.innerHTML = alerts.length ? '<span class="badge red">⚠️ ' + alerts.length + ' em alerta</span>' : '';
+
+      if (!items.length) {
+        document.getElementById('ing-tbody').innerHTML = '<tr><td colspan="8"><div class="tbl-empty"><span class="tbl-empty-icon">🧺</span>Nenhum ingrediente cadastrado ainda.<br>Adicione o primeiro acima.</div></td></tr>';
+        return;
+      }
+      document.getElementById('ing-tbody').innerHTML = items.map(function (i) {
+        var baixo = i.minimo > 0 && i.estoque <= i.minimo;
+        var pct = i.minimo > 0 ? Math.min(100, (i.estoque / i.minimo * 100)) : 100;
+        var barClass = baixo ? 'red' : pct < 150 ? '' : 'green';
+        return '<tr>' +
+          '<td><strong>' + i.nome + '</strong></td>' +
+          '<td><span class="badge blue">' + i.categoria + '</span></td>' +
+          '<td>' + fmt(i.custo) + '/' + i.unidade + '</td>' +
+          '<td>' + fmtN(i.estoque, 2) + ' ' + i.unidade + '<div class="progress"><div class="progress-fill ' + barClass + '" style="width:' + pct + '%"></div></div></td>' +
+          '<td>' + (i.minimo > 0 ? fmtN(i.minimo, 2) + ' ' + i.unidade : '—') + '</td>' +
+          '<td>' + (baixo ? '<span class="badge red">⚠️ Baixo</span>' : '<span class="badge green">✓ OK</span>') + '</td>' +
+          '<td style="color:var(--ink-50)">' + (i.fornecedor || '—') + '</td>' +
+          '<td><button class="btn icon-only danger sm" onclick="removerIngrediente(\'' + i.id + '\')">🗑️</button></td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    /* ══════════════════════════════════════════════
+       CARDÁPIO
+    ══════════════════════════════════════════════ */
+    var cardIngTemp = [];
+
+    function adicionarIngCard() {
+      var sel = document.getElementById('cd-ing-sel');
+      var id = sel.value;
+      if (!id) { toast('Selecione um ingrediente', 'error'); return; }
+      var qtd = parseFloat(document.getElementById('cd-ing-qtd').value) || 1;
+      var ing = db.ingredientes.find(function (i) { return i.id === id; });
+      if (!ing) return;
+      var ex = cardIngTemp.find(function (c) { return c.ingId === id; });
+      if (ex) { ex.qtd += qtd; } else { cardIngTemp.push({ ingId: id, nome: ing.nome, unidade: ing.unidade, custo: ing.custo, qtd: qtd }); }
+      renderCardIngTemp();
+    }
+    function removerIngTemp(id) {
+      cardIngTemp = cardIngTemp.filter(function (c) { return c.ingId !== id; });
+      renderCardIngTemp();
+    }
+    function renderCardIngTemp() {
+      var total = cardIngTemp.reduce(function (s, c) { return s + c.custo * c.qtd; }, 0);
+      document.getElementById('cd-ings-preview').innerHTML = cardIngTemp.length
+        ? cardIngTemp.map(function (c) {
+          return '<span class="ing-tag">' + c.nome + ' × ' + fmtN(c.qtd, 3) + ' ' + c.unidade +
+            ' <button onclick="removerIngTemp(\'' + c.ingId + '\')">✕</button></span>';
+        }).join('')
+        : '<span style="font-size:12px;color:var(--ink-50)">Nenhum ingrediente adicionado</span>';
+      document.getElementById('cd-custo-auto').textContent = cardIngTemp.length
+        ? 'Custo calculado pelos ingredientes: ' + fmt(total) + '/pessoa'
+        : '';
+      if (cardIngTemp.length) document.getElementById('cd-custo').value = total.toFixed(2);
+      atualizarMargemCard();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      document.getElementById('cd-custo').addEventListener('input', atualizarMargemCard);
+      document.getElementById('cd-preco').addEventListener('input', atualizarMargemCard);
+    });
+
+    function atualizarMargemCard() {
+      var c = parseFloat(document.getElementById('cd-custo').value) || 0;
+      var p = parseFloat(document.getElementById('cd-preco').value) || 0;
+      var ms = document.getElementById('cd-margem-show');
+      if (p > 0 && c > 0) {
+        var m = ((p - c) / p * 100);
+        ms.textContent = m.toFixed(1) + '%';
+        ms.style.color = m >= 20 ? 'var(--green)' : m >= 0 ? 'var(--gold-dark)' : 'var(--red)';
+      } else { ms.textContent = '—'; ms.style.color = 'var(--ink-50)'; }
+    }
+
+    function salvarCardapio() {
+      var nome = document.getElementById('cd-nome').value.trim();
+      if (!nome) { toast('Informe o nome do cardápio', 'error'); return; }
+      var custo = parseFloat(document.getElementById('cd-custo').value) || 0;
+      db.cardapios.push({
+        id: gerarId(), nome: nome,
+        categoria: document.getElementById('cd-cat').value,
+        descricao: document.getElementById('cd-desc').value.trim(),
+        custoPessoa: custo,
+        precoPessoa: parseFloat(document.getElementById('cd-preco').value) || 0,
+        ingredientes: JSON.parse(JSON.stringify(cardIngTemp))
+      });
+      cardIngTemp = [];
+      salvarLS(); limparCardapio(); renderCardapios(); renderSelects();
+      toast('Cardápio "' + nome + '" salvo!');
+    }
+    function limparCardapio() {
+      ['cd-nome', 'cd-custo', 'cd-preco', 'cd-desc'].forEach(function (id) { document.getElementById(id).value = ''; });
+      cardIngTemp = []; renderCardIngTemp();
+      document.getElementById('cd-margem-show').textContent = '—';
+    }
+    function removerCardapio(id) {
+      if (!confirm('Remover este cardápio?')) return;
+      db.cardapios = db.cardapios.filter(function (c) { return c.id !== id; });
+      salvarLS(); renderCardapios(); renderSelects();
+      toast('Cardápio removido.');
+    }
+    function renderCardapios() {
+      document.getElementById('cd-count').textContent = db.cardapios.length + ' cadastrados';
+      if (!db.cardapios.length) {
+        document.getElementById('cd-list').innerHTML = '<div class="tbl-empty"><span class="tbl-empty-icon">📋</span>Nenhum cardápio cadastrado ainda.</div>';
+        return;
+      }
+      document.getElementById('cd-list').innerHTML = db.cardapios.map(function (c) {
+        var margem = c.precoPessoa > 0 ? ((c.precoPessoa - c.custoPessoa) / c.precoPessoa * 100).toFixed(1) : null;
+        var margemBadge = margem !== null
+          ? '<span class="badge ' + (parseFloat(margem) >= 20 ? 'green' : parseFloat(margem) >= 0 ? 'gold' : 'red') + '">' + margem + '% margem</span>'
+          : '';
+        var ings = c.ingredientes.map(function (i) { return '<span class="ing-tag" style="margin:2px">' + i.nome + '</span>'; }).join('');
+        return '<div class="menu-card">' +
+          '<div class="menu-card-header">' +
+          '<div>' +
+          '<div class="menu-card-name">' + c.nome + '</div>' +
+          '<div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap">' +
+          '<span class="badge gold">' + c.categoria + '</span>' + margemBadge +
+          '</div>' +
+          '</div>' +
+          '<button class="btn icon-only danger sm" onclick="removerCardapio(\'' + c.id + '\')">🗑️</button>' +
+          '</div>' +
+          (c.descricao ? '<div class="menu-card-desc">' + c.descricao + '</div>' : '') +
+          '<div class="menu-card-prices">' +
+          '<span>Custo/pessoa: <strong>' + fmt(c.custoPessoa) + '</strong></span>' +
+          (c.precoPessoa ? '<span>Preço/pessoa: <strong style="color:var(--gold-dark)">' + fmt(c.precoPessoa) + '</strong></span>' : '') +
+          '</div>' +
+          (ings ? '<div style="margin-top:10px">' + ings + '</div>' : '') +
+          '</div>';
+      }).join('');
+    }
+
+    /* ══════════════════════════════════════════════
+       EVENTOS
+    ══════════════════════════════════════════════ */
+    function atualizarEv() {
+      var p = parseInt(document.getElementById('ev-pessoas').value) || 0;
+      var c = parseFloat(document.getElementById('ev-custo').value) || 0;
+      var v = parseFloat(document.getElementById('ev-valor').value) || 0;
+      var rec = p * v, luc = rec - c;
+      var prev = document.getElementById('ev-preview');
+      if (p > 0 && (c > 0 || v > 0)) {
+        prev.style.display = 'flex';
+        document.getElementById('ev-preview-text').innerHTML =
+          'Receita: <strong>' + fmt(rec) + '</strong> · ' +
+          'Custo: <strong>' + fmt(c) + '</strong> · ' +
+          'Lucro: <strong style="color:' + (luc >= 0 ? 'var(--green)' : 'var(--red)') + '">' + fmt(luc) + '</strong>';
+      } else { prev.style.display = 'none'; }
+    }
+
+    function salvarEvento() {
+      var nome = document.getElementById('ev-nome').value.trim();
+      if (!nome) { toast('Informe o nome do evento', 'error'); return; }
+      var pessoas = parseInt(document.getElementById('ev-pessoas').value) || 0;
+      var custo = parseFloat(document.getElementById('ev-custo').value) || 0;
+      var valor = parseFloat(document.getElementById('ev-valor').value) || 0;
+      var receita = pessoas * valor;
+      db.eventos.push({
+        id: gerarId(), nome: nome,
+        tipo: document.getElementById('ev-tipo').value,
+        status: document.getElementById('ev-status').value,
+        data: document.getElementById('ev-data').value,
+        hora: document.getElementById('ev-hora').value,
+        local: document.getElementById('ev-local').value.trim(),
+        contato: document.getElementById('ev-contato').value.trim(),
+        pessoas: pessoas, custo: custo,
+        valorPessoa: valor, receita: receita,
+        lucro: receita - custo,
+        sinal: parseFloat(document.getElementById('ev-sinal').value) || 0,
+        cardapioId: document.getElementById('ev-cardapio').value,
+        obs: document.getElementById('ev-obs').value.trim()
+      });
+      salvarLS(); limparEvento(); renderEventos();
+      toast('Evento "' + nome + '" salvo!');
+    }
+    function limparEvento() {
+      ['ev-nome', 'ev-data', 'ev-hora', 'ev-local', 'ev-contato', 'ev-obs'].forEach(function (id) { document.getElementById(id).value = ''; });
+      ['ev-pessoas', 'ev-custo', 'ev-valor', 'ev-sinal'].forEach(function (id) { document.getElementById(id).value = ''; });
+      document.getElementById('ev-preview').style.display = 'none';
+    }
+    function removerEvento(id) {
+      if (!confirm('Remover este evento?')) return;
+      db.eventos = db.eventos.filter(function (e) { return e.id !== id; });
+      salvarLS(); renderEventos();
+      toast('Evento removido.');
+    }
+    function renderEventos() {
+      var busca = (document.getElementById('ev-busca').value || '').toLowerCase();
+      var items = db.eventos.filter(function (e) { return e.nome.toLowerCase().includes(busca) || e.tipo.toLowerCase().includes(busca); });
+      document.getElementById('ev-count').textContent = db.eventos.length + ' eventos';
+      if (!items.length) {
+        document.getElementById('ev-tbody').innerHTML = '<tr><td colspan="9"><div class="tbl-empty"><span class="tbl-empty-icon">📅</span>Nenhum evento cadastrado.</div></td></tr>';
+        return;
+      }
+      var sorted = items.slice().sort(function (a, b) { return a.data < b.data ? -1 : 1; });
+      var statusMap = { agendado: 'gold', confirmado: 'blue', realizado: 'green', cancelado: 'red' };
+      document.getElementById('ev-tbody').innerHTML = sorted.map(function (ev) {
+        var sc = statusMap[ev.status] || 'gray';
+        return '<tr>' +
+          '<td><strong>' + ev.nome + '</strong>' + (ev.local ? '<br><span style="font-size:11.5px;color:var(--ink-50)">📍 ' + ev.local + '</span>' : '') + '</td>' +
+          '<td><span class="badge gold">' + ev.tipo + '</span></td>' +
+          '<td>' + fmtData(ev.data) + (ev.hora ? '<br><span style="font-size:11px;color:var(--ink-50)">' + ev.hora + '</span>' : '') + '</td>' +
+          '<td style="text-align:center">' + (ev.pessoas || '—') + '</td>' +
+          '<td>' + fmt(ev.custo) + '</td>' +
+          '<td>' + fmt(ev.receita) + '</td>' +
+          '<td style="font-weight:500;color:' + (ev.lucro >= 0 ? 'var(--green)' : 'var(--red)') + '">' + fmt(ev.lucro) + '</td>' +
+          '<td><span class="badge ' + sc + '">' + (ev.status || '—') + '</span></td>' +
+          '<td><button class="btn icon-only danger sm" onclick="removerEvento(\'' + ev.id + '\')">🗑️</button></td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    /* ══════════════════════════════════════════════
+       SELECTS GLOBAIS
+    ══════════════════════════════════════════════ */
+    function renderSelects() {
+      var optC = '<option value="">— selecione —</option>' + db.cardapios.map(function (c) {
+        return '<option value="' + c.id + '">' + c.nome + '</option>';
+      }).join('');
+      ['ev-cardapio', 'calc-card'].forEach(function (id) { document.getElementById(id).innerHTML = optC; });
+
+      var optI = '<option value="">— selecione —</option>' + db.ingredientes.map(function (i) {
+        return '<option value="' + i.id + '">' + i.nome + ' (' + i.unidade + ')</option>';
+      }).join('');
+      document.getElementById('cd-ing-sel').innerHTML = optI;
+    }
+
+    /* ══════════════════════════════════════════════
+       CALCULADORA
+    ══════════════════════════════════════════════ */
+    function calcular() {
+      var pessoas = parseInt(document.getElementById('calc-pessoas').value) || 0;
+      var cardId = document.getElementById('calc-card').value;
+      var card = db.cardapios.find(function (c) { return c.id === cardId; });
+      var alimPess = card ? card.custoPessoa : (parseFloat(document.getElementById('calc-alim').value) || 0);
+      if (card) document.getElementById('calc-alim').value = alimPess.toFixed(2);
+      var custoAlim = alimPess * pessoas;
+
+      var fixoIds = ['calc-mao', 'calc-aluguel', 'calc-deco', 'calc-transp', 'calc-entreten', 'calc-equip', 'calc-foto', 'calc-outros'];
+      var fixo = fixoIds.reduce(function (s, id) { return s + (parseFloat(document.getElementById(id).value) || 0); }, 0);
+
+      var custoTotal = custoAlim + fixo;
+      var custoPorCab = pessoas ? custoTotal / pessoas : 0;
+      var margem = parseFloat(document.getElementById('calc-margem').value) || 0;
+      var sugerido = margem < 100 ? custoPorCab / (1 - margem / 100) : custoPorCab * 2;
+      var valPess = parseFloat(document.getElementById('calc-valpess').value) || 0;
+      var receita = valPess * pessoas;
+      var lucro = receita - custoTotal;
+      var margemReal = receita > 0 ? (lucro / receita * 100) : 0;
+
+      document.getElementById('cr-alim').textContent = fmt(custoAlim);
+      document.getElementById('cr-fixo').textContent = fmt(fixo);
+      document.getElementById('cr-total').textContent = fmt(custoTotal);
+      document.getElementById('cr-porcab').textContent = fmt(custoPorCab);
+      document.getElementById('cr-sugerido').textContent = fmt(sugerido);
+      document.getElementById('cr-receita').textContent = fmt(receita);
+
+      var lEl = document.getElementById('cr-lucro');
+      lEl.textContent = fmt(lucro);
+      lEl.style.color = lucro >= 0 ? '#6FCF97' : '#FF8A95';
+
+      var mEl = document.getElementById('cr-margem');
+      mEl.textContent = margemReal.toFixed(1) + '%';
+      mEl.style.color = margemReal >= 20 ? '#6FCF97' : margemReal >= 0 ? 'var(--gold)' : '#FF8A95';
+
+      var alertEl = document.getElementById('cr-alert');
+      if (valPess > 0 && valPess < custoPorCab) {
+        alertEl.innerHTML = '<div class="alert red"><span class="alert-icon">⚠️</span><div>Atenção: o valor cobrado está <strong>abaixo do custo</strong> por pessoa! Você terá prejuízo de <strong>' + fmt(Math.abs(lucro)) + '</strong>. Preço mínimo de equilíbrio: <strong>' + fmt(custoPorCab) + '/pessoa</strong>.</div></div>';
+      } else if (valPess > 0 && margemReal < 10) {
+        alertEl.innerHTML = '<div class="alert gold"><span class="alert-icon">💡</span><div>Margem muito baixa (' + margemReal.toFixed(1) + '%). Para atingir ' + margem + '% de margem, cobre <strong>' + fmt(sugerido) + '/pessoa</strong>.</div></div>';
+      } else if (valPess > 0) {
+        alertEl.innerHTML = '<div class="alert green"><span class="alert-icon">✅</span><div>Ótimo negócio! Margem de <strong>' + margemReal.toFixed(1) + '%</strong> com lucro de <strong>' + fmt(lucro) + '</strong>.</div></div>';
+      } else {
+        alertEl.innerHTML = '<div class="alert gold"><span class="alert-icon">💡</span><div>Para margem de <strong>' + margem + '%</strong>, cobre <strong>' + fmt(sugerido) + '/pessoa</strong>. Receita total: <strong>' + fmt(sugerido * pessoas) + '</strong>.</div></div>';
+      }
+
+      renderChartCalc(custoAlim, fixo, lucro);
+    }
+
+    function limparCalc() {
+      document.getElementById('calc-nome').value = '';
+      document.getElementById('calc-valpess').value = '0';
+      ['calc-mao', 'calc-aluguel', 'calc-deco', 'calc-transp', 'calc-entreten', 'calc-equip', 'calc-foto', 'calc-outros'].forEach(function (id) { document.getElementById(id).value = '0'; });
+      calcular();
+    }
+
+    function salvarEventoCalc() {
+      var nome = document.getElementById('calc-nome').value.trim() || 'Evento (calculadora)';
+      var pessoas = parseInt(document.getElementById('calc-pessoas').value) || 0;
+      var cardId = document.getElementById('calc-card').value;
+      var card = db.cardapios.find(function (c) { return c.id === cardId; });
+      var alimPess = card ? card.custoPessoa : (parseFloat(document.getElementById('calc-alim').value) || 0);
+      var custoAlim = alimPess * pessoas;
+      var fixoIds = ['calc-mao', 'calc-aluguel', 'calc-deco', 'calc-transp', 'calc-entreten', 'calc-equip', 'calc-foto', 'calc-outros'];
+      var fixo = fixoIds.reduce(function (s, id) { return s + (parseFloat(document.getElementById(id).value) || 0); }, 0);
+      var custo = custoAlim + fixo;
+      var valPess = parseFloat(document.getElementById('calc-valpess').value) || 0;
+      var receita = valPess * pessoas;
+      db.eventos.push({
+        id: gerarId(), nome: nome, tipo: 'Calculadora', status: 'agendado',
+        data: '', hora: '', local: '', contato: '',
+        pessoas: pessoas, custo: custo, valorPessoa: valPess, receita: receita,
+        lucro: receita - custo, sinal: 0, cardapioId: cardId, obs: ''
+      });
+      salvarLS(); renderEventos();
+      toast('Evento "' + nome + '" salvo com sucesso!');
+    }
+
+    /* ══════════════════════════════════════════════
+       CHARTS
+    ══════════════════════════════════════════════ */
+    function destroyChart(key) {
+      if (charts[key]) { charts[key].destroy(); charts[key] = null; }
+    }
+
+    function renderChartCalc(alim, fixo, lucro) {
+      destroyChart('calc');
+      var labels = ['Alimentação', 'Custos fixos'];
+      var data = [alim, fixo];
+      var bg = ['#C9941A', '#1B4F8A'];
+      if (lucro > 0) { labels.push('Lucro'); data.push(lucro); bg.push('#2D6A4F'); }
+      if (!data.some(function (d) { return d > 0; })) return;
+      var ctx = document.getElementById('chartCalc').getContext('2d');
+      charts['calc'] = new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels: labels, datasets: [{ data: data, backgroundColor: bg, borderWidth: 2, borderColor: '#fff' }] },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: function (c) { return ' ' + c.label + ': ' + fmt(c.raw); } } }
+          }
+        }
+      });
+    }
+
+    function renderDash() {
+      var total = db.eventos.reduce(function (s, e) { return s + e.receita; }, 0);
+      var custos = db.eventos.reduce(function (s, e) { return s + e.custo; }, 0);
+      var lucro = total - custos;
+      var margMedia = total > 0 ? (lucro / total * 100) : 0;
+      var hoje = new Date().toISOString().split('T')[0];
+      var proximos = db.eventos.filter(function (e) { return e.data >= hoje; }).length;
+
+      var metricas = [
+        { label: 'Receita total', val: fmt(total), cls: 'gold', accent: true },
+        { label: 'Lucro total', val: fmt(lucro), cls: lucro >= 0 ? 'green' : 'red', accent: false },
+        { label: 'Margem média', val: margMedia.toFixed(1) + '%', cls: margMedia >= 20 ? 'green' : margMedia >= 0 ? 'gold' : 'red', accent: false },
+        { label: 'Próximos eventos', val: proximos, cls: '', accent: false },
+        { label: 'Total de eventos', val: db.eventos.length, cls: '', accent: false },
+        { label: 'Cardápios', val: db.cardapios.length, cls: '', accent: false },
+        { label: 'Ingredientes', val: db.ingredientes.length, cls: '', accent: false },
+        { label: 'Custos totais', val: fmt(custos), cls: 'red', accent: false },
+      ];
+      document.getElementById('dash-metrics').innerHTML = metricas.map(function (m) {
+        return '<div class="metric-card ' + (m.accent ? 'accent' : '') + '">' +
+          '<div class="metric-label">' + m.label + '</div>' +
+          '<div class="metric-val ' + m.cls + '">' + m.val + '</div>' +
+          '</div>';
+      }).join('');
+
+      var prox = db.eventos.filter(function (e) { return e.data >= hoje; })
+        .sort(function (a, b) { return a.data < b.data ? -1 : 1; }).slice(0, 5);
+      var proxEl = document.getElementById('dash-proximos');
+      proxEl.innerHTML = prox.length ? prox.map(function (e) {
+        return '<div class="event-row">' +
+          '<div>' +
+          '<div class="event-row-name">' + e.nome + '</div>' +
+          '<div class="event-row-meta">' + fmtData(e.data) + ' · ' + e.pessoas + ' pessoas · ' + e.tipo + '</div>' +
+          '</div>' +
+          '<span class="badge ' + (e.lucro >= 0 ? 'green' : 'red') + '">' + fmt(e.lucro) + '</span>' +
+          '</div>';
+      }).join('') : '<div class="tbl-empty" style="padding:24px"><span class="tbl-empty-icon">📅</span>Nenhum evento agendado</div>';
+
+      var alertas = db.ingredientes.filter(function (i) { return i.minimo > 0 && i.estoque <= i.minimo; });
+      var estEl = document.getElementById('dash-estoque');
+      estEl.innerHTML = alertas.length ? alertas.map(function (i) {
+        return '<div class="event-row">' +
+          '<div><div class="event-row-name">' + i.nome + '</div><div class="event-row-meta">Estoque: ' + fmtN(i.estoque, 2) + ' ' + i.unidade + ' · Mínimo: ' + fmtN(i.minimo, 2) + ' ' + i.unidade + '</div></div>' +
+          '<span class="badge red">⚠️ Baixo</span></div>';
+      }).join('') : '<div class="tbl-empty" style="padding:24px"><span class="tbl-empty-icon">✅</span>Estoque em dia!</div>';
+
+      destroyChart('dash');
+      var ev5 = db.eventos.slice(-6);
+      var ctx = document.getElementById('chartDash').getContext('2d');
+      charts['dash'] = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ev5.map(function (e) { var n = e.nome; return n.length > 14 ? n.substr(0, 14) + '…' : n; }),
+          datasets: [
+            { label: 'Receita', data: ev5.map(function (e) { return e.receita; }), backgroundColor: '#C9941A' },
+            { label: 'Custo', data: ev5.map(function (e) { return e.custo; }), backgroundColor: '#D8CFC0' },
+            { label: 'Lucro', data: ev5.map(function (e) { return e.lucro; }), backgroundColor: '#2D6A4F' }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { ticks: { callback: function (v) { return 'R$' + v.toLocaleString('pt-BR'); } } }, x: { ticks: { font: { size: 11 } } } }
+        }
+      });
+
+      destroyChart('mensal');
+      var meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      var recMes = new Array(12).fill(0), lucMes = new Array(12).fill(0);
+      db.eventos.forEach(function (e) {
+        if (e.data) { var m = parseInt(e.data.split('-')[1]) - 1; recMes[m] += e.receita; lucMes[m] += e.lucro; }
+      });
+      var ctx2 = document.getElementById('chartMensal').getContext('2d');
+      charts['mensal'] = new Chart(ctx2, {
+        type: 'line',
+        data: {
+          labels: meses,
+          datasets: [
+            { label: 'Receita', data: recMes, borderColor: '#C9941A', backgroundColor: 'rgba(201,148,26,.1)', fill: true, tension: .35, pointRadius: 4 },
+            { label: 'Lucro', data: lucMes, borderColor: '#2D6A4F', backgroundColor: 'rgba(45,106,79,.08)', fill: true, tension: .35, pointRadius: 4 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { ticks: { callback: function (v) { return 'R$' + v.toLocaleString('pt-BR'); } } } }
+        }
+      });
+    }
+
+    /* ══════════════════════════════════════════════
+       RELATÓRIO
+    ══════════════════════════════════════════════ */
+    function renderRelatorio() {
+      var total = db.eventos.reduce(function (s, e) { return s + e.receita; }, 0);
+      var custos = db.eventos.reduce(function (s, e) { return s + e.custo; }, 0);
+      var lucro = total - custos;
+      var totalPess = db.eventos.reduce(function (s, e) { return s + e.pessoas; }, 0);
+      var ticketMedio = totalPess > 0 ? total / totalPess : 0;
+
+      document.getElementById('rel-metrics').innerHTML = [
+        { label: 'Receita total', val: fmt(total), cls: 'gold' },
+        { label: 'Lucro total', val: fmt(lucro), cls: lucro >= 0 ? 'green' : 'red' },
+        { label: 'Ticket médio/pessoa', val: fmt(ticketMedio), cls: '' },
+        { label: 'Pessoas atendidas', val: totalPess.toLocaleString('pt-BR'), cls: '' }
+      ].map(function (m) {
+        return '<div class="metric-card"><div class="metric-label">' + m.label + '</div><div class="metric-val ' + m.cls + '">' + m.val + '</div></div>';
+      }).join('');
+
+      var por_tipo = {};
+      db.eventos.forEach(function (e) {
+        if (!por_tipo[e.tipo]) por_tipo[e.tipo] = 0;
+        por_tipo[e.tipo] += e.receita;
+      });
+      var tipos = Object.keys(por_tipo);
+      var recTipo = tipos.map(function (t) { return por_tipo[t]; });
+
+      destroyChart('tipo');
+      if (tipos.length) {
+        var ctx3 = document.getElementById('chartTipo').getContext('2d');
+        charts['tipo'] = new Chart(ctx3, {
+          type: 'pie',
+          data: {
+            labels: tipos,
+            datasets: [{ data: recTipo, backgroundColor: ['#C9941A', '#2D6A4F', '#1B4F8A', '#B5152B', '#8B6310', '#6FCF97'], borderWidth: 2, borderColor: '#fff' }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { tooltip: { callbacks: { label: function (c) { return ' ' + c.label + ': ' + fmt(c.raw); } } } }
+          }
+        });
+      }
+
+      destroyChart('lucro');
+      var meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      var lucMes = new Array(12).fill(0);
+      db.eventos.forEach(function (e) { if (e.data) { var m = parseInt(e.data.split('-')[1]) - 1; lucMes[m] += e.lucro; } });
+      var ctx4 = document.getElementById('chartLucro').getContext('2d');
+      charts['lucro'] = new Chart(ctx4, {
+        type: 'bar',
+        data: {
+          labels: meses,
+          datasets: [{ label: 'Lucro', data: lucMes, backgroundColor: lucMes.map(function (v) { return v >= 0 ? '#2D6A4F' : '#B5152B'; }), borderRadius: 4 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { ticks: { callback: function (v) { return 'R$' + v.toLocaleString('pt-BR'); } } } }
+        }
+      });
+
+      var top5 = db.eventos.slice().sort(function (a, b) { return b.lucro - a.lucro; }).slice(0, 5);
+      document.getElementById('rel-top5').innerHTML = top5.length ? top5.map(function (e, i) {
+        var m = e.receita > 0 ? ((e.lucro / e.receita) * 100).toFixed(1) : '0.0';
+        return '<tr>' +
+          '<td><span style="font-weight:600;color:var(--gold-dark)">' + ['🥇', '🥈', '🥉', '4º', '5º'][i] + '</span> ' + e.nome + '</td>' +
+          '<td><span class="badge gold">' + e.tipo + '</span></td>' +
+          '<td>' + fmtData(e.data) + '</td>' +
+          '<td style="text-align:center">' + e.pessoas + '</td>' +
+          '<td>' + fmt(e.receita) + '</td>' +
+          '<td>' + fmt(e.custo) + '</td>' +
+          '<td style="color:' + (e.lucro >= 0 ? 'var(--green)' : 'var(--red)') + ';font-weight:600">' + fmt(e.lucro) + '</td>' +
+          '<td><span class="badge ' + (parseFloat(m) >= 20 ? 'green' : parseFloat(m) >= 0 ? 'gold' : 'red') + '">' + m + '%</span></td>' +
+          '</tr>';
+      }).join('') : '<tr><td colspan="8"><div class="tbl-empty"><span class="tbl-empty-icon">📊</span>Nenhum evento registrado</div></td></tr>';
+    }
+
+    /* ══════════════════════════════════════════════
+       EXPORT / IMPORT
+    ══════════════════════════════════════════════ */
+    function exportarDados() {
+      var json = JSON.stringify(db, null, 2);
+      var blob = new Blob([json], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'buffetpro-dados-' + new Date().toISOString().split('T')[0] + '.json';
+      a.click();
+      toast('Dados exportados com sucesso!');
+    }
+    function importarDados() { document.getElementById('import-file').click(); }
+    function lerImport(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function (ev) {
+        try {
+          var d = JSON.parse(ev.target.result);
+          if (d.eventos !== undefined) {
+            db = d; salvarLS();
+            renderSelects(); renderIngredientes(); renderCardapios(); renderEventos(); renderDash();
+            toast('Dados importados! ' + db.eventos.length + ' eventos, ' + db.cardapios.length + ' cardápios.');
+          } else { toast('Arquivo inválido', 'error'); }
+        } catch (err) { toast('Erro ao importar arquivo', 'error'); }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    }
+
+    /* ══════════════════════════════════════════════
+       INIT
+    ══════════════════════════════════════════════ */
+    document.addEventListener('DOMContentLoaded', function () {
+      var now = new Date();
+      document.getElementById('topbar-date').textContent = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+      carregarLS();
+      renderSelects();
+      renderIngredientes();
+      renderCardapios();
+      renderEventos();
+      renderDash();
+    });
+  </script>
+</body>
+
+</html>
