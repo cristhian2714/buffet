@@ -958,36 +958,68 @@
       margin-top: 2px;
     }
 
+    /* ══════════════════════════════════════════════
+   OVERLAY
+══════════════════════════════════════════════ */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(26, 22, 16, 0.5);
+      z-index: 90;
+      backdrop-filter: blur(2px);
+    }
+    .sidebar-overlay.active {
+      display: block;
+    }
+
     /* RESPONSIVE */
     @media (max-width: 1024px) {
-      .g4 {
-        grid-template-columns: 1fr 1fr;
-      }
+      .g4 { grid-template-columns: 1fr 1fr; }
     }
 
     @media (max-width: 768px) {
       .sidebar {
-        width: 200px;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 100;
+        width: 260px;
       }
-
+      .sidebar.open {
+        transform: translateX(0);
+      }
       .main {
-        margin-left: 200px;
+        margin-left: 0;
       }
-
-      .g2,
-      .g3,
-      .g4 {
-        grid-template-columns: 1fr;
+      #menu-toggle {
+        display: inline-flex !important;
       }
-
-      .form-row.c2,
-      .form-row.c3,
-      .form-row.c4 {
-        grid-template-columns: 1fr;
+      .topbar {
+        padding: 0 16px;
       }
-
+      .topbar-title {
+        font-size: 18px;
+      }
+      .topbar .btn {
+        padding: 6px 10px;
+        font-size: 11px;
+      }
       .content {
-        padding: 20px;
+        padding: 16px;
+      }
+      .g2, .g3, .g4, .form-row.c2, .form-row.c3, .form-row.c4 {
+        grid-template-columns: 1fr;
+      }
+      .metric-val {
+        font-size: 22px;
+      }
+      .calc-big {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      .calc-big > div {
+        text-align: left !important;
       }
     }
   </style>
@@ -1038,12 +1070,18 @@
     </div>
   </aside>
 
+  <!-- ── OVERLAY ─────────────────────────────────── -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleMenu()"></div>
+
   <!-- ── MAIN ────────────────────────────────────── -->
   <main class="main">
     <header class="topbar">
-      <div>
-        <div class="topbar-title" id="topbar-title">Painel</div>
-        <div class="topbar-date" id="topbar-date"></div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button id="menu-toggle" class="btn icon-only ghost" style="display:none;font-size:18px;padding:4px" onclick="toggleMenu()">☰</button>
+        <div>
+          <div class="topbar-title" id="topbar-title">Painel</div>
+          <div class="topbar-date" id="topbar-date"></div>
+        </div>
       </div>
       <div style="display:flex;gap:10px;align-items:center">
         <button class="btn sm" onclick="exportarDados()" title="Exportar dados">💾 Exportar dados</button>
@@ -1683,12 +1721,21 @@
     ══════════════════════════════════════════════ */
     var pageTitles = { painel: 'Painel geral', eventos: 'Eventos', cardapio: 'Cardápios', ingredientes: 'Ingredientes', calculadora: 'Calculadora de evento', relatorio: 'Relatórios' };
 
+    function toggleMenu() {
+      document.querySelector('.sidebar').classList.toggle('open');
+      document.getElementById('sidebar-overlay').classList.toggle('active');
+    }
+
     function navTo(id, btn) {
       document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
       document.querySelectorAll('.nav-item').forEach(function (n) { n.classList.remove('active'); });
       document.getElementById('page-' + id).classList.add('active');
       btn.classList.add('active');
       document.getElementById('topbar-title').textContent = pageTitles[id] || id;
+
+      // Fecha o menu no mobile ao clicar
+      document.querySelector('.sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('active');
 
       if (id === 'painel') renderDash();
       if (id === 'cardapio') renderCardapios();
