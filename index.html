@@ -1227,6 +1227,7 @@
             <div class="card-title-icon">➕</div> Novo evento
           </div>
 
+          <input type="hidden" id="ev-id-edit" value="">
           <div class="form-section">
             <div class="form-section-title">Informações básicas</div>
             <div class="form-row c3">
@@ -1301,7 +1302,7 @@
           </div>
 
           <div class="btn-row">
-            <button class="btn primary" onclick="salvarEvento()">✅ Salvar evento</button>
+            <button class="btn primary" id="btn-salvar-ev" onclick="salvarEvento()">✅ Salvar evento</button>
             <button class="btn" onclick="limparEvento()">🗑️ Limpar campos</button>
           </div>
         </div>
@@ -2039,8 +2040,10 @@
       var custo = parseFloat(document.getElementById('ev-custo').value) || 0;
       var valor = parseFloat(document.getElementById('ev-valor').value) || 0;
       var receita = pessoas * valor;
-      db.eventos.push({
-        id: gerarId(), nome: nome,
+      var editId = document.getElementById('ev-id-edit').value;
+      
+      var eventoData = {
+        nome: nome,
         tipo: document.getElementById('ev-tipo').value,
         status: document.getElementById('ev-status').value,
         data: document.getElementById('ev-data').value,
@@ -2053,11 +2056,50 @@
         sinal: parseFloat(document.getElementById('ev-sinal').value) || 0,
         cardapioId: document.getElementById('ev-cardapio').value,
         obs: document.getElementById('ev-obs').value.trim()
-      });
+      };
+
+      if (editId) {
+        var idx = db.eventos.findIndex(function(e) { return e.id === editId; });
+        if (idx !== -1) {
+          eventoData.id = editId;
+          db.eventos[idx] = eventoData;
+          toast('Evento atualizado com sucesso!');
+        }
+      } else {
+        eventoData.id = gerarId();
+        db.eventos.push(eventoData);
+        toast('Evento "' + nome + '" salvo!');
+      }
+
       salvarLS(); limparEvento(); renderEventos();
-      toast('Evento "' + nome + '" salvo!');
     }
+    
+    function editarEvento(id) {
+      var ev = db.eventos.find(function(e) { return e.id === id; });
+      if (!ev) return;
+      document.getElementById('ev-id-edit').value = ev.id;
+      document.getElementById('ev-nome').value = ev.nome || '';
+      document.getElementById('ev-tipo').value = ev.tipo || 'Casamento';
+      document.getElementById('ev-status').value = ev.status || 'agendado';
+      document.getElementById('ev-data').value = ev.data || '';
+      document.getElementById('ev-hora').value = ev.hora || '';
+      document.getElementById('ev-local').value = ev.local || '';
+      document.getElementById('ev-contato').value = ev.contato || '';
+      document.getElementById('ev-pessoas').value = ev.pessoas || '';
+      document.getElementById('ev-custo').value = ev.custo || '';
+      document.getElementById('ev-valor').value = ev.valorPessoa || '';
+      document.getElementById('ev-sinal').value = ev.sinal || '';
+      document.getElementById('ev-cardapio').value = ev.cardapioId || '';
+      document.getElementById('ev-obs').value = ev.obs || '';
+      
+      document.getElementById('btn-salvar-ev').innerHTML = '🔄 Atualizar evento';
+      atualizarEv();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     function limparEvento() {
+      document.getElementById('ev-id-edit').value = '';
+      document.getElementById('btn-salvar-ev').innerHTML = '✅ Salvar evento';
       ['ev-nome', 'ev-data', 'ev-hora', 'ev-local', 'ev-contato', 'ev-obs'].forEach(function (id) { document.getElementById(id).value = ''; });
       ['ev-pessoas', 'ev-custo', 'ev-valor', 'ev-sinal'].forEach(function (id) { document.getElementById(id).value = ''; });
       document.getElementById('ev-preview').style.display = 'none';
@@ -2090,7 +2132,11 @@
           '<td>' + fmt(ev.receita) + '</td>' +
           '<td style="font-weight:500;color:' + (ev.lucro >= 0 ? 'var(--green)' : 'var(--red)') + '">' + fmt(ev.lucro) + '</td>' +
           '<td><span class="badge ' + sc + '">' + (ev.status || '—') + '</span></td>' +
-          '<td><button class="btn icon-only danger sm" onclick="removerEvento(\'' + ev.id + '\')">🗑️</button></td>' +
+          '<td>' +
+          '<div style="display:flex;gap:4px;justify-content:center">' +
+          '<button class="btn icon-only primary sm" onclick="editarEvento(\'' + ev.id + '\')" title="Editar">✏️</button>' +
+          '<button class="btn icon-only danger sm" onclick="removerEvento(\'' + ev.id + '\')" title="Remover">🗑️</button>' +
+          '</div></td>' +
           '</tr>';
       }).join('');
     }
