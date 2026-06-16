@@ -1087,10 +1087,44 @@
       }
       td, th { padding: 12px; }
     }
+  
+    /* LOGIN PAGE */
+    #login-page {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+      background: var(--ink); display: flex; align-items: center; justify-content: center; z-index: 9999;
+    }
+    .login-box {
+      background: var(--white); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 400px;
+      box-shadow: var(--shadow-md); text-align: center;
+    }
+    .login-logo { font-size: 48px; margin-bottom: 10px; }
+    .login-title { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--ink); margin-bottom: 24px; }
   </style>
 </head>
 
 <body>
+
+  
+  <!-- ── LOGIN ─────────────────────────────────── -->
+  <div id="login-page">
+    <div class="login-box">
+      <div class="login-logo">🍽️</div>
+      <div class="login-title">BuffetKairós</div>
+      <div class="form-row">
+        <div class="field" style="text-align: left;">
+          <label>Usuário</label>
+          <input type="text" id="login-user" placeholder="kairosbuffet">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field" style="text-align: left;">
+          <label>Senha</label>
+          <input type="password" id="login-pass" placeholder="••••••••">
+        </div>
+      </div>
+      <button class="btn primary" style="width: 100%; justify-content: center; margin-top: 10px;" onclick="fazerLogin()">Entrar</button>
+    </div>
+  </div>
 
   <!-- ── SIDEBAR ─────────────────────────────────── -->
   <aside class="sidebar">
@@ -1382,19 +1416,7 @@
             </div>
           </div>
 
-          <div class="form-section">
-            <div class="form-section-title">Ingredientes vinculados</div>
-            <div class="form-row c3" style="align-items:flex-end">
-              <div class="field"><label>Ingrediente</label><select id="cd-ing-sel">
-                  <option value="">— selecione —</option>
-                </select></div>
-              <div class="field"><label>Quantidade (por pessoa)</label><input type="number" id="cd-ing-qtd" min="0.001"
-                  step="0.001" placeholder="0,200"></div>
-              <div><button class="btn primary sm" onclick="adicionarIngCard()">➕ Adicionar</button></div>
-            </div>
-            <div class="ing-tags" id="cd-ings-preview"></div>
-            <div id="cd-custo-auto" style="font-size:12px;color:var(--ink-50);margin-top:4px"></div>
-          </div>
+          
 
           <div class="form-section">
             <div class="form-section-title">Precificação</div>
@@ -1532,132 +1554,172 @@
       </div>
 
       <!-- ═══════ CALCULADORA ═══════ -->
-      <div id="page-calculadora" class="page">
+            <div id="page-calculadora" class="page">
         <div class="section-header">
           <div>
-            <h2>Calculadora de evento</h2>
-            <div class="section-sub">Descubra o preço ideal e seu lucro real</div>
+            <h2>Calculadora / Orçamento</h2>
+            <div class="section-sub">Monte seu orçamento com base nas categorias da planilha</div>
           </div>
         </div>
 
-        <div class="grid g2">
-          <div>
-            <div class="card">
+        <div class="grid g2" style="align-items: flex-start;">
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="card" style="margin-bottom:0">
               <div class="card-title">
                 <div class="card-title-icon">📝</div> Dados do evento
               </div>
               <div class="form-row c2">
-                <div class="field"><label>Nome (referência)</label><input type="text" id="calc-nome"
-                    placeholder="Ex: Casamento Oliveira"></div>
-                <div class="field"><label>Cardápio base</label><select id="calc-card" onchange="calcular()">
-                    <option value="">— nenhum —</option>
-                  </select></div>
-              </div>
-              <div class="form-row c2">
-                <div class="field"><label>Número de convidados</label><input type="number" id="calc-pessoas" min="1"
-                    value="100" oninput="calcular()"></div>
-                <div class="field"><label>Custo alimentação/pessoa (R$)</label><input type="number" id="calc-alim"
-                    step="0.01" value="0" oninput="calcular()"></div>
-              </div>
-
-              <hr class="divider">
-              <div
-                style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-50);margin-bottom:14px">
-                Custos fixos do evento (R$)</div>
-
-              <div class="form-row c2">
-                <div class="field"><label>👨‍🍳 Mão de obra / equipe</label><input type="number" id="calc-mao"
-                    step="0.01" value="0" oninput="calcular()"></div>
-                <div class="field"><label>🏛️ Aluguel de espaço</label><input type="number" id="calc-aluguel"
-                    step="0.01" value="0" oninput="calcular()"></div>
-              </div>
-              <div class="form-row c2">
-                <div class="field"><label>🌸 Decoração</label><input type="number" id="calc-deco" step="0.01" value="0"
-                    oninput="calcular()"></div>
-                <div class="field"><label>🚚 Transporte / frete</label><input type="number" id="calc-transp" step="0.01"
-                    value="0" oninput="calcular()"></div>
-              </div>
-              <div class="form-row c2">
-                <div class="field"><label>🎵 Entretenimento</label><input type="number" id="calc-entreten" step="0.01"
-                    value="0" oninput="calcular()"></div>
-                <div class="field"><label>🍽️ Equipamentos / locação</label><input type="number" id="calc-equip"
-                    step="0.01" value="0" oninput="calcular()"></div>
-              </div>
-              <div class="form-row c2">
-                <div class="field"><label>📸 Fotografia / vídeo</label><input type="number" id="calc-foto" step="0.01"
-                    value="0" oninput="calcular()"></div>
-                <div class="field"><label>📦 Outros custos</label><input type="number" id="calc-outros" step="0.01"
-                    value="0" oninput="calcular()"></div>
-              </div>
-
-              <hr class="divider">
-              <div class="form-row c2">
-                <div class="field"><label>Margem de lucro desejada (%)</label><input type="number" id="calc-margem"
-                    min="0" max="100" value="30" oninput="calcular()"></div>
-                <div class="field"><label>Valor cobrado por pessoa (R$)</label><input type="number" id="calc-valpess"
-                    step="0.01" value="0" oninput="calcular()"></div>
-              </div>
-
-              <div class="btn-row">
-                <button class="btn primary" onclick="salvarEventoCalc()">📅 Salvar como evento</button>
-                <button class="btn" onclick="limparCalc()">🗑️ Limpar</button>
+                <div class="field"><label>Nome (referência)</label><input type="text" id="calc-nome" placeholder="Ex: Casamento Oliveira"></div>
+                <div class="field"><label>Número de convidados</label><input type="number" id="calc-pessoas" min="1" value="100" oninput="calcular()"></div>
               </div>
             </div>
+
+            <!-- Alimentos e Bebidas -->
+            <div class="card" style="margin-bottom:0">
+              <div class="card-title" style="margin-bottom: 10px;">
+                <div class="card-title-icon">🍽️</div> Alimentos e Bebidas
+              </div>
+              <div class="tbl-wrap" style="margin-bottom: 10px;">
+                <table>
+                  <thead><tr><th>Item</th><th>Qtd</th><th>Valor Unit. (R$)</th><th>Total (R$)</th><th></th></tr></thead>
+                  <tbody id="tb-alimentos"></tbody>
+                </table>
+              </div>
+              <div class="form-row c4" style="align-items: flex-end; margin-bottom: 0;">
+                <div class="field"><label>Item</label><input type="text" id="add-ali-item" placeholder="Ex: Entradas"></div>
+                <div class="field"><label>Qtd</label><input type="number" id="add-ali-qtd" value="1" min="1"></div>
+                <div class="field"><label>Valor Unit.</label><input type="number" id="add-ali-val" step="0.01" placeholder="0,00"></div>
+                <div><button class="btn primary sm" onclick="addOrcamentoItem('alimentos')">➕ Add</button></div>
+              </div>
+            </div>
+
+            <!-- Estrutura e Equipamentos -->
+            <div class="card" style="margin-bottom:0">
+              <div class="card-title" style="margin-bottom: 10px;">
+                <div class="card-title-icon">🏛️</div> Estrutura e Equipamentos
+              </div>
+              <div class="tbl-wrap" style="margin-bottom: 10px;">
+                <table>
+                  <thead><tr><th>Item</th><th>Qtd</th><th>Valor Unit. (R$)</th><th>Total (R$)</th><th></th></tr></thead>
+                  <tbody id="tb-estrutura"></tbody>
+                </table>
+              </div>
+              <div class="form-row c4" style="align-items: flex-end; margin-bottom: 0;">
+                <div class="field"><label>Item</label><input type="text" id="add-est-item" placeholder="Ex: Mesas"></div>
+                <div class="field"><label>Qtd</label><input type="number" id="add-est-qtd" value="1" min="1"></div>
+                <div class="field"><label>Valor Unit.</label><input type="number" id="add-est-val" step="0.01" placeholder="0,00"></div>
+                <div><button class="btn primary sm" onclick="addOrcamentoItem('estrutura')">➕ Add</button></div>
+              </div>
+            </div>
+
+            <!-- Equipe -->
+            <div class="card" style="margin-bottom:0">
+              <div class="card-title" style="margin-bottom: 10px;">
+                <div class="card-title-icon">👨‍🍳</div> Equipe
+              </div>
+              <div class="tbl-wrap" style="margin-bottom: 10px;">
+                <table>
+                  <thead><tr><th>Função</th><th>Qtd</th><th>Valor Unit. (R$)</th><th>Total (R$)</th><th></th></tr></thead>
+                  <tbody id="tb-equipe"></tbody>
+                </table>
+              </div>
+              <div class="form-row c4" style="align-items: flex-end; margin-bottom: 0;">
+                <div class="field"><label>Função</label><input type="text" id="add-equ-item" placeholder="Ex: Garçons"></div>
+                <div class="field"><label>Qtd</label><input type="number" id="add-equ-qtd" value="1" min="1"></div>
+                <div class="field"><label>Valor Unit.</label><input type="number" id="add-equ-val" step="0.01" placeholder="0,00"></div>
+                <div><button class="btn primary sm" onclick="addOrcamentoItem('equipe')">➕ Add</button></div>
+              </div>
+            </div>
+
+            <!-- Despesas Operacionais -->
+            <div class="card" style="margin-bottom:0">
+              <div class="card-title" style="margin-bottom: 10px;">
+                <div class="card-title-icon">🚚</div> Despesas Operacionais
+              </div>
+              <div class="tbl-wrap" style="margin-bottom: 10px;">
+                <table>
+                  <thead><tr><th>Descrição</th><th>Valor (R$)</th><th></th></tr></thead>
+                  <tbody id="tb-despesas"></tbody>
+                </table>
+              </div>
+              <div class="form-row c3" style="align-items: flex-end; margin-bottom: 0;">
+                <div class="field"><label>Descrição</label><input type="text" id="add-des-item" placeholder="Ex: Transporte"></div>
+                <div class="field"><label>Valor (R$)</label><input type="number" id="add-des-val" step="0.01" placeholder="0,00"></div>
+                <div><button class="btn primary sm" onclick="addOrcamentoItem('despesas')">➕ Add</button></div>
+              </div>
+            </div>
+
           </div>
 
-          <div>
+          <!-- COLUNA DIREITA -->
+          <div style="position: sticky; top: 84px; display: flex; flex-direction: column; gap: 20px;">
             <div class="calc-result">
-              <div class="calc-result-title">💰 Resultado</div>
+              <div class="calc-result-title">💰 Resumo Financeiro</div>
 
               <div class="calc-item">
-                <span class="calc-item-label">Custo de alimentação total</span>
+                <span class="calc-item-label">Total Alimentos e Bebidas</span>
                 <span class="calc-item-val" id="cr-alim">R$ 0,00</span>
               </div>
               <div class="calc-item">
-                <span class="calc-item-label">Custos fixos do evento</span>
-                <span class="calc-item-val" id="cr-fixo">R$ 0,00</span>
+                <span class="calc-item-label">Total Estrutura e Equip</span>
+                <span class="calc-item-val" id="cr-estru">R$ 0,00</span>
               </div>
-              <div class="calc-divider"></div>
               <div class="calc-item">
-                <span class="calc-item-label">Custo total do evento</span>
+                <span class="calc-item-label">Total Equipe</span>
+                <span class="calc-item-val" id="cr-equi">R$ 0,00</span>
+              </div>
+              <div class="calc-item">
+                <span class="calc-item-label">Total Despesas Operacionais</span>
+                <span class="calc-item-val" id="cr-desp">R$ 0,00</span>
+              </div>
+              
+              <div class="calc-divider"></div>
+              
+              <div class="calc-item">
+                <span class="calc-item-label">CUSTO TOTAL DO EVENTO</span>
                 <span class="calc-item-val gold" id="cr-total">R$ 0,00</span>
               </div>
-              <div class="calc-item">
-                <span class="calc-item-label">Custo por pessoa</span>
-                <span class="calc-item-val" id="cr-porcab">R$ 0,00</span>
-              </div>
-
+              
               <div class="calc-divider"></div>
-
+              
               <div class="calc-item">
-                <span class="calc-item-label">Preço sugerido por pessoa</span>
-                <span class="calc-item-val gold" id="cr-sugerido">R$ 0,00</span>
-              </div>
-              <div class="calc-item">
-                <span class="calc-item-label">Receita total (valor cobrado)</span>
-                <span class="calc-item-val" id="cr-receita">R$ 0,00</span>
+                <div class="field" style="margin-bottom:0; width: 140px;">
+                  <label style="color:rgba(255, 255, 255, .6);">Margem Lucro (%)</label>
+                  <input type="number" id="calc-margem" min="0" value="50" oninput="calcular()" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px; height: 32px;">
+                </div>
+                <div style="text-align: right;">
+                  <span class="calc-item-label">Valor do Lucro</span><br>
+                  <span class="calc-item-val" id="cr-lucro" style="color:#6FCF97; font-size: 16px;">R$ 0,00</span>
+                </div>
               </div>
 
-              <div class="calc-big">
+              <div class="calc-big" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, .15);">
                 <div>
-                  <div class="calc-big-label">Lucro estimado</div>
-                  <div class="calc-big-val" id="cr-lucro" style="color:#6FCF97">R$ 0,00</div>
+                  <div class="calc-big-label">Valor Final do Orçamento</div>
+                  <div class="calc-big-val" id="cr-receita" style="color:var(--gold)">R$ 0,00</div>
                 </div>
-                <div style="text-align:right">
-                  <div class="calc-big-label">Margem real</div>
-                  <div class="calc-big-val" id="cr-margem" style="color:var(--gold)">0%</div>
-                </div>
+              </div>
+              <div style="text-align: left; margin-top: 8px;">
+                <span class="calc-item-label">Valor por Convidado:</span>
+                <strong id="cr-porcab" style="color: white; font-size: 15px;">R$ 0,00</strong>
               </div>
             </div>
 
-            <div style="margin-top:14px" id="cr-alert"></div>
+            <div class="card" style="margin-bottom:0">
+              <div class="form-row">
+                <div class="field"><label>Substituir Valor Final (R$) - Opcional</label><input type="number" id="calc-valpess" step="0.01" placeholder="Se preenchido, ignora a margem" oninput="calcular()"></div>
+              </div>
+              <div class="btn-row" style="margin-top: 10px;">
+                <button class="btn primary" onclick="salvarEventoCalc()" style="width: 100%; justify-content: center;">📅 Salvar Orçamento</button>
+                <button class="btn" onclick="limparCalc()" style="width: 100%; justify-content: center;">🗑️ Limpar tudo</button>
+              </div>
+            </div>
 
             <div class="card" style="margin-top:0">
               <div class="card-title">
                 <div class="card-title-icon">📊</div> Breakdown de custos
               </div>
-              <div class="chart-wrap" style="height:220px"><canvas id="chartCalc" role="img"
-                  aria-label="Distribuição dos custos do evento"></canvas></div>
+              <div class="chart-wrap" style="height:220px"><canvas id="chartCalc" role="img"></canvas></div>
             </div>
           </div>
         </div>
@@ -1841,7 +1903,7 @@
       if (id === 'cardapio') renderCardapios();
       if (id === 'ingredientes') renderIngredientes();
       if (id === 'eventos') renderEventos();
-      if (id === 'calculadora') { renderSelects(); calcular(); }
+      if (id === 'calculadora') { renderOrcamentoListas(); calcular(); }
       if (id === 'relatorio') renderRelatorio();
     }
 
@@ -1933,13 +1995,14 @@
         }).join('')
         : '<span style="font-size:12px;color:var(--ink-50)">Nenhum ingrediente adicionado</span>';
       document.getElementById('cd-custo-auto').textContent = cardIngTemp.length
-        ? 'Custo calculado pelos ingredientes: ' + fmt(total) + '/pessoa'
+        ? 'Custo base calculado pelos itens: ' + fmt(total)
         : '';
       if (cardIngTemp.length) document.getElementById('cd-custo').value = total.toFixed(2);
       atualizarMargemCard();
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+      checkLogin();
       document.getElementById('cd-custo').addEventListener('input', atualizarMargemCard);
       document.getElementById('cd-preco').addEventListener('input', atualizarMargemCard);
     });
@@ -2148,7 +2211,8 @@
       var optC = '<option value="">— selecione —</option>' + db.cardapios.map(function (c) {
         return '<option value="' + c.id + '">' + c.nome + '</option>';
       }).join('');
-      ['ev-cardapio', 'calc-card'].forEach(function (id) { document.getElementById(id).innerHTML = optC; });
+      var elEvCardapio = document.getElementById('ev-cardapio');
+      if (elEvCardapio) elEvCardapio.innerHTML = optC;
 
       var optI = '<option value="">— selecione —</option>' + db.ingredientes.map(function (i) {
         return '<option value="' + i.id + '">' + i.nome + ' (' + i.unidade + ')</option>';
@@ -2157,84 +2221,155 @@
     }
 
     /* ══════════════════════════════════════════════
-       CALCULADORA
+       CALCULADORA (ORÇAMENTO)
     ══════════════════════════════════════════════ */
+    let orcamentoListas = { alimentos: [], estrutura: [], equipe: [], despesas: [] };
+
+    function renderOrcamentoListas() {
+      const renderRow = (cat, items) => {
+        const tbody = document.getElementById('tb-' + cat);
+        if (!tbody) return;
+        if (items.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--ink-50)">Nenhum item adicionado</td></tr>';
+          return;
+        }
+        tbody.innerHTML = items.map((i, idx) => {
+          const total = i.qtd * i.val;
+          let cols = '';
+          if (cat === 'despesas') {
+            cols = '<td>'+i.item+'</td><td>'+fmt(i.val)+'</td>';
+          } else {
+            cols = '<td>'+i.item+'</td><td>'+i.qtd+'</td><td>'+fmt(i.val)+'</td><td>'+fmt(total)+'</td>';
+          }
+          return '<tr>' + cols + '<td style="text-align:right"><button class="btn icon-only danger sm" onclick="removerOrcamentoItem(\''+cat+'\', '+idx+')">🗑️</button></td></tr>';
+        }).join('');
+      };
+      
+      renderRow('alimentos', orcamentoListas.alimentos);
+      renderRow('estrutura', orcamentoListas.estrutura);
+      renderRow('equipe', orcamentoListas.equipe);
+      renderRow('despesas', orcamentoListas.despesas);
+    }
+
+    function addOrcamentoItem(cat) {
+      let pre = cat.substring(0, 3);
+      let item = document.getElementById('add-'+pre+'-item').value.trim();
+      let val = parseFloat(document.getElementById('add-'+pre+'-val').value) || 0;
+      let qtd = 1;
+      if (cat !== 'despesas') {
+        qtd = parseFloat(document.getElementById('add-'+pre+'-qtd').value) || 1;
+      }
+      if (!item) { toast('Informe o nome do item', 'error'); return; }
+      
+      orcamentoListas[cat].push({ item, qtd, val });
+      
+      document.getElementById('add-'+pre+'-item').value = '';
+      document.getElementById('add-'+pre+'-val').value = '';
+      if (cat !== 'despesas') document.getElementById('add-'+pre+'-qtd').value = '1';
+      
+      renderOrcamentoListas();
+      calcular();
+      toast('Item adicionado a ' + cat + '!');
+    }
+
+    function removerOrcamentoItem(cat, idx) {
+      orcamentoListas[cat].splice(idx, 1);
+      renderOrcamentoListas();
+      calcular();
+    }
+
+    function sumCategoria(cat) {
+      return orcamentoListas[cat].reduce((sum, item) => sum + (item.qtd * item.val), 0);
+    }
+
     function calcular() {
-      var pessoas = parseInt(document.getElementById('calc-pessoas').value) || 0;
-      var cardId = document.getElementById('calc-card').value;
-      var card = db.cardapios.find(function (c) { return c.id === cardId; });
-      var alimPess = card ? card.custoPessoa : (parseFloat(document.getElementById('calc-alim').value) || 0);
-      if (card) document.getElementById('calc-alim').value = alimPess.toFixed(2);
-      var custoAlim = alimPess * pessoas;
+      const pessoas = parseInt(document.getElementById('calc-pessoas').value) || 0;
+      
+      const totAlim = sumCategoria('alimentos');
+      const totEstru = sumCategoria('estrutura');
+      const totEqui = sumCategoria('equipe');
+      const totDesp = sumCategoria('despesas');
 
-      var fixoIds = ['calc-mao', 'calc-aluguel', 'calc-deco', 'calc-transp', 'calc-entreten', 'calc-equip', 'calc-foto', 'calc-outros'];
-      var fixo = fixoIds.reduce(function (s, id) { return s + (parseFloat(document.getElementById(id).value) || 0); }, 0);
+      const custoTotal = totAlim + totEstru + totEqui + totDesp;
+      
+      const margem = parseFloat(document.getElementById('calc-margem').value) || 0;
+      let valPessOverride = parseFloat(document.getElementById('calc-valpess').value) || 0;
+      
+      let receita = 0;
+      if (valPessOverride > 0) {
+        receita = valPessOverride;
+      } else {
+        if (margem < 100) {
+           receita = custoTotal / (1 - margem/100);
+        } else {
+           receita = custoTotal * 2;
+        }
+      }
+      
+      const lucro = receita - custoTotal;
+      const margemReal = receita > 0 ? (lucro / receita * 100) : 0;
+      const custoPorCab = pessoas ? receita / pessoas : 0;
 
-      var custoTotal = custoAlim + fixo;
-      var custoPorCab = pessoas ? custoTotal / pessoas : 0;
-      var margem = parseFloat(document.getElementById('calc-margem').value) || 0;
-      var sugerido = margem < 100 ? custoPorCab / (1 - margem / 100) : custoPorCab * 2;
-      var valPess = parseFloat(document.getElementById('calc-valpess').value) || 0;
-      var receita = valPess * pessoas;
-      var lucro = receita - custoTotal;
-      var margemReal = receita > 0 ? (lucro / receita * 100) : 0;
-
-      document.getElementById('cr-alim').textContent = fmt(custoAlim);
-      document.getElementById('cr-fixo').textContent = fmt(fixo);
+      document.getElementById('cr-alim').textContent = fmt(totAlim);
+      document.getElementById('cr-estru').textContent = fmt(totEstru);
+      document.getElementById('cr-equi').textContent = fmt(totEqui);
+      document.getElementById('cr-desp').textContent = fmt(totDesp);
       document.getElementById('cr-total').textContent = fmt(custoTotal);
-      document.getElementById('cr-porcab').textContent = fmt(custoPorCab);
-      document.getElementById('cr-sugerido').textContent = fmt(sugerido);
+      
       document.getElementById('cr-receita').textContent = fmt(receita);
+      document.getElementById('cr-porcab').textContent = fmt(custoPorCab);
 
-      var lEl = document.getElementById('cr-lucro');
+      const lEl = document.getElementById('cr-lucro');
       lEl.textContent = fmt(lucro);
       lEl.style.color = lucro >= 0 ? '#6FCF97' : '#FF8A95';
 
-      var mEl = document.getElementById('cr-margem');
-      mEl.textContent = margemReal.toFixed(1) + '%';
-      mEl.style.color = margemReal >= 20 ? '#6FCF97' : margemReal >= 0 ? 'var(--gold)' : '#FF8A95';
-
-      var alertEl = document.getElementById('cr-alert');
-      if (valPess > 0 && valPess < custoPorCab) {
-        alertEl.innerHTML = '<div class="alert red"><span class="alert-icon">⚠️</span><div>Atenção: o valor cobrado está <strong>abaixo do custo</strong> por pessoa! Você terá prejuízo de <strong>' + fmt(Math.abs(lucro)) + '</strong>. Preço mínimo de equilíbrio: <strong>' + fmt(custoPorCab) + '/pessoa</strong>.</div></div>';
-      } else if (valPess > 0 && margemReal < 10) {
-        alertEl.innerHTML = '<div class="alert gold"><span class="alert-icon">💡</span><div>Margem muito baixa (' + margemReal.toFixed(1) + '%). Para atingir ' + margem + '% de margem, cobre <strong>' + fmt(sugerido) + '/pessoa</strong>.</div></div>';
-      } else if (valPess > 0) {
-        alertEl.innerHTML = '<div class="alert green"><span class="alert-icon">✅</span><div>Ótimo negócio! Margem de <strong>' + margemReal.toFixed(1) + '%</strong> com lucro de <strong>' + fmt(lucro) + '</strong>.</div></div>';
-      } else {
-        alertEl.innerHTML = '<div class="alert gold"><span class="alert-icon">💡</span><div>Para margem de <strong>' + margem + '%</strong>, cobre <strong>' + fmt(sugerido) + '/pessoa</strong>. Receita total: <strong>' + fmt(sugerido * pessoas) + '</strong>.</div></div>';
-      }
-
-      renderChartCalc(custoAlim, fixo, lucro);
+      renderChartCalc(totAlim, totEstru + totEqui + totDesp, lucro);
     }
 
     function limparCalc() {
       document.getElementById('calc-nome').value = '';
-      document.getElementById('calc-valpess').value = '0';
-      ['calc-mao', 'calc-aluguel', 'calc-deco', 'calc-transp', 'calc-entreten', 'calc-equip', 'calc-foto', 'calc-outros'].forEach(function (id) { document.getElementById(id).value = '0'; });
+      document.getElementById('calc-pessoas').value = '100';
+      document.getElementById('calc-valpess').value = '';
+      document.getElementById('calc-margem').value = '50';
+      orcamentoListas = { alimentos: [], estrutura: [], equipe: [], despesas: [] };
+      renderOrcamentoListas();
       calcular();
     }
 
     function salvarEventoCalc() {
-      var nome = document.getElementById('calc-nome').value.trim() || 'Evento (calculadora)';
-      var pessoas = parseInt(document.getElementById('calc-pessoas').value) || 0;
-      var cardId = document.getElementById('calc-card').value;
-      var card = db.cardapios.find(function (c) { return c.id === cardId; });
-      var alimPess = card ? card.custoPessoa : (parseFloat(document.getElementById('calc-alim').value) || 0);
-      var custoAlim = alimPess * pessoas;
-      var fixoIds = ['calc-mao', 'calc-aluguel', 'calc-deco', 'calc-transp', 'calc-entreten', 'calc-equip', 'calc-foto', 'calc-outros'];
-      var fixo = fixoIds.reduce(function (s, id) { return s + (parseFloat(document.getElementById(id).value) || 0); }, 0);
-      var custo = custoAlim + fixo;
-      var valPess = parseFloat(document.getElementById('calc-valpess').value) || 0;
-      var receita = valPess * pessoas;
+      const nome = document.getElementById('calc-nome').value.trim() || 'Evento (calculadora)';
+      const pessoas = parseInt(document.getElementById('calc-pessoas').value) || 0;
+      
+      const totAlim = sumCategoria('alimentos');
+      const totEstru = sumCategoria('estrutura');
+      const totEqui = sumCategoria('equipe');
+      const totDesp = sumCategoria('despesas');
+      const custo = totAlim + totEstru + totEqui + totDesp;
+      
+      const margem = parseFloat(document.getElementById('calc-margem').value) || 0;
+      let valPessOverride = parseFloat(document.getElementById('calc-valpess').value) || 0;
+      
+      let receita = 0;
+      if (valPessOverride > 0) {
+        receita = valPessOverride;
+      } else {
+        if (margem < 100) {
+           receita = custo / (1 - margem/100);
+        } else {
+           receita = custo * 2;
+        }
+      }
+      const lucro = receita - custo;
+      
       db.eventos.push({
-        id: gerarId(), nome: nome, tipo: 'Calculadora', status: 'agendado',
+        id: gerarId(), nome: nome, tipo: 'Orçamento', status: 'agendado',
         data: '', hora: '', local: '', contato: '',
-        pessoas: pessoas, custo: custo, valorPessoa: valPess, receita: receita,
-        lucro: receita - custo, sinal: 0, cardapioId: cardId, obs: ''
+        pessoas: pessoas, custo: custo, valorPessoa: pessoas ? receita / pessoas : 0, receita: receita,
+        lucro: lucro, sinal: 0, cardapioId: '', obs: '',
+        detalhesOrcamento: JSON.parse(JSON.stringify(orcamentoListas))
       });
       salvarLS(); renderEventos();
-      toast('Evento "' + nome + '" salvo com sucesso!');
+      toast('Orçamento "' + nome + '" salvo como evento!');
     }
 
     /* ══════════════════════════════════════════════
