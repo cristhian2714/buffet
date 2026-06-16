@@ -1836,6 +1836,27 @@
       btnConfirm.addEventListener('click', onConfirmClick);
     }
 
+    function fazerLogin() {
+      var u = document.getElementById('login-user').value;
+      var p = document.getElementById('login-pass').value;
+      if (u === 'kairosbuffet' && p === 'Kairos271203') {
+        sessionStorage.setItem('kairos_logged', 'true');
+        checkLogin();
+        toast('Bem-vindo!', 'success');
+      } else {
+        toast('Usuário ou senha incorretos!', 'error');
+      }
+    }
+    function checkLogin() {
+      if (sessionStorage.getItem('kairos_logged') === 'true') {
+        document.getElementById('login-page').style.display = 'none';
+        document.body.style.overflow = 'auto';
+      } else {
+        document.getElementById('login-page').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
     // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAF_1FWWJYvNWOvjeizvr0Xa0Yt2NJ9iUA",
