@@ -1408,10 +1408,28 @@
               <div class="field"><label>Porções por pessoa</label><input type="number" id="cd-porcoes" value="1"
                   min="0.1" step="0.1"></div>
             </div>
+            <div class="form-row c3" style="align-items: flex-end;">
+              <div class="field">
+                <label>Selecionar Ingrediente</label>
+                <select id="cd-ing-sel">
+                  <option value="">— selecione —</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Quantidade Necessária</label>
+                <input type="number" id="cd-ing-qtd" value="1" min="0.001" step="0.001" placeholder="Ex: 0.2">
+              </div>
+              <div>
+                <button type="button" class="btn primary" onclick="adicionarIngCard()" style="height: 42px;">➕ Adicionar</button>
+              </div>
+            </div>
             <div class="form-row">
-              <div class="field"><label>Descrição completa do cardápio</label>
-                <textarea id="cd-desc"
-                  placeholder="Descreva detalhadamente: entradas, pratos principais, acompanhamentos, sobremesas, bebidas incluídas..."></textarea>
+              <div class="field">
+                <label>Ingredientes do Cardápio</label>
+                <div id="cd-ings-preview" class="ing-tags">
+                  <span style="font-size:12px;color:var(--ink-50)">Nenhum ingrediente adicionado</span>
+                </div>
+                <div id="cd-custo-auto" style="margin-top: 8px; font-size: 13px; color: var(--gold-dark); font-weight: 500;"></div>
               </div>
             </div>
           </div>
@@ -2046,7 +2064,7 @@
       db.cardapios.push({
         id: gerarId(), nome: nome,
         categoria: document.getElementById('cd-cat').value,
-        descricao: document.getElementById('cd-desc').value.trim(),
+        descricao: "",
         custoPessoa: custo,
         precoPessoa: parseFloat(document.getElementById('cd-preco').value) || 0,
         ingredientes: JSON.parse(JSON.stringify(cardIngTemp))
@@ -2056,7 +2074,7 @@
       toast('Cardápio "' + nome + '" salvo!');
     }
     function limparCardapio() {
-      ['cd-nome', 'cd-custo', 'cd-preco', 'cd-desc'].forEach(function (id) { document.getElementById(id).value = ''; });
+      ['cd-nome', 'cd-custo', 'cd-preco'].forEach(function (id) { document.getElementById(id).value = ''; });
       cardIngTemp = []; renderCardIngTemp();
       document.getElementById('cd-margem-show').textContent = '—';
     }
@@ -2078,7 +2096,10 @@
         var margemBadge = margem !== null
           ? '<span class="badge ' + (parseFloat(margem) >= 20 ? 'green' : parseFloat(margem) >= 0 ? 'gold' : 'red') + '">' + margem + '% margem</span>'
           : '';
-        var ings = c.ingredientes.map(function (i) { return '<span class="ing-tag" style="margin:2px">' + i.nome + '</span>'; }).join('');
+        var ings = (c.ingredientes || []).map(function (i) {
+          var totalCustoIng = parseFloat(i.custo || 0) * parseFloat(i.qtd || 0);
+          return '<span class="ing-tag" style="margin:2px; font-size:11.5px">' + i.nome + ' × ' + fmtN(i.qtd, 2) + ' ' + i.unidade + ' (' + fmt(totalCustoIng) + ')</span>';
+        }).join('');
         return '<div class="menu-card">' +
           '<div class="menu-card-header">' +
           '<div>' +
@@ -2094,11 +2115,10 @@
           '<span>Custo/pessoa: <strong>' + fmt(c.custoPessoa) + '</strong></span>' +
           (c.precoPessoa ? '<span>Preço/pessoa: <strong style="color:var(--gold-dark)">' + fmt(c.precoPessoa) + '</strong></span>' : '') +
           '</div>' +
-          (ings ? '<div style="margin-top:10px">' + ings + '</div>' : '') +
+          (ings ? '<div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:4px">' + ings + '</div>' : '') +
           '</div>';
       }).join('');
     }
-
     /* ══════════════════════════════════════════════
        EVENTOS
     ══════════════════════════════════════════════ */
