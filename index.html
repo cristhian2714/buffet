@@ -1481,6 +1481,7 @@
           <div class="card-title">
             <div class="card-title-icon">➕</div> Novo ingrediente / insumo
           </div>
+          <input type="hidden" id="ing-id-edit" value="">
 
           <div class="form-section">
             <div class="form-section-title">Dados do produto</div>
@@ -1534,7 +1535,7 @@
           </div>
 
           <div class="btn-row">
-            <button class="btn primary" onclick="salvarIngrediente()">✅ Cadastrar ingrediente</button>
+            <button class="btn primary" id="btn-salvar-ing" onclick="salvarIngrediente()">✅ Cadastrar ingrediente</button>
             <button class="btn" onclick="limparIngrediente()">🗑️ Limpar</button>
           </div>
         </div>
@@ -1952,20 +1953,70 @@
     function salvarIngrediente() {
       var nome = document.getElementById('ing-nome').value.trim();
       if (!nome) { toast('Informe o nome do ingrediente', 'error'); return; }
-      db.ingredientes.push({
-        id: gerarId(), nome: nome,
+      
+      var editId = document.getElementById('ing-id-edit').value;
+      var ingredienteData = {
+        nome: nome,
         categoria: document.getElementById('ing-cat').value,
         unidade: document.getElementById('ing-unid').value,
         custo: parseFloat(document.getElementById('ing-custo').value) || 0,
         estoque: parseFloat(document.getElementById('ing-estoque').value) || 0,
         minimo: parseFloat(document.getElementById('ing-minimo').value) || 0,
         fornecedor: document.getElementById('ing-forn').value.trim()
-      });
+      };
+
+      if (editId) {
+        var idx = db.ingredientes.findIndex(function (i) { return i.id === editId; });
+        if (idx !== -1) {
+          ingredienteData.id = editId;
+          db.ingredientes[idx] = ingredienteData;
+          
+          // Atualiza o custo, nome e unidade nos cardápios que usam este ingrediente
+          db.cardapios.forEach(function (c) {
+            var updated = false;
+            (c.ingredientes || []).forEach(function (ci) {
+              if (ci.ingId === editId) {
+                ci.custo = ingredienteData.custo;
+                ci.nome = ingredienteData.nome;
+                ci.unidade = ingredienteData.unidade;
+                updated = true;
+              }
+            });
+            if (updated) {
+              // Recalcula o custo total por pessoa do cardápio
+              c.custoPessoa = c.ingredientes.reduce(function (s, ci) { return s + ci.custo * ci.qtd; }, 0);
+            }
+          });
+          
+          toast('Ingrediente "' + nome + '" atualizado!');
+        }
+      } else {
+        ingredienteData.id = gerarId();
+        db.ingredientes.push(ingredienteData);
+        toast('Ingrediente "' + nome + '" cadastrado!');
+      }
+
       salvarLS(); limparIngrediente(); renderIngredientes(); renderSelects();
-      toast('Ingrediente "' + nome + '" cadastrado!');
     }
     function limparIngrediente() {
+      document.getElementById('ing-id-edit').value = '';
+      document.getElementById('btn-salvar-ing').innerHTML = '✅ Cadastrar ingrediente';
       ['ing-nome', 'ing-custo', 'ing-estoque', 'ing-minimo', 'ing-forn'].forEach(function (id) { document.getElementById(id).value = ''; });
+    }
+    function editarIngrediente(id) {
+      var ing = db.ingredientes.find(function (i) { return i.id === id; });
+      if (!ing) return;
+      document.getElementById('ing-id-edit').value = ing.id;
+      document.getElementById('ing-nome').value = ing.nome || '';
+      document.getElementById('ing-cat').value = ing.categoria || '';
+      document.getElementById('ing-unid').value = ing.unidade || '';
+      document.getElementById('ing-custo').value = ing.custo || '';
+      document.getElementById('ing-estoque').value = ing.estoque || '';
+      document.getElementById('ing-minimo').value = ing.minimo || '';
+      document.getElementById('ing-forn').value = ing.fornecedor || '';
+      
+      document.getElementById('btn-salvar-ing').innerHTML = '🔄 Atualizar ingrediente';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     function removerIngrediente(id) {
       uiConfirm('Tem certeza que deseja remover este ingrediente?', function() {
@@ -2000,7 +2051,11 @@
           '<td>' + (i.minimo > 0 ? fmtN(i.minimo, 2) + ' ' + i.unidade : '—') + '</td>' +
           '<td>' + (baixo ? '<span class="badge red">⚠️ Baixo</span>' : '<span class="badge green">✓ OK</span>') + '</td>' +
           '<td style="color:var(--ink-50)">' + (i.fornecedor || '—') + '</td>' +
-          '<td><button class="btn icon-only danger sm" onclick="removerIngrediente(\'' + i.id + '\')">🗑️</button></td>' +
+          '<td>' +
+          '<div style="display:flex; gap:4px; justify-content:center">' +
+          '<button class="btn icon-only primary sm" onclick="editarIngrediente(\'' + i.id + '\')" title="Editar">✏️</button>' +
+          '<button class="btn icon-only danger sm" onclick="removerIngrediente(\'' + i.id + '\')" title="Remover">🗑️</button>' +
+          '</div></td>' +
           '</tr>';
       }).join('');
     }
